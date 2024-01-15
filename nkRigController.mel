@@ -1,0 +1,889 @@
+/*! © 2023 imaoki | MIT License | https://github.com/imaoki */
+
+// /////////////////////////////////////////////////////////////////////////////
+// ボイラープレート
+// /////////////////////////////////////////////////////////////////////////////
+// アトリビュート
+/*1.2.0*/proc string[] getConnections(string $n,int $dir,string $type,string $sourceAttributes[],string $targetAttributes[]) {string $nodes[];clear $sourceAttributes;clear $targetAttributes;if (!`objExists $n`) return $nodes;int $d = $dir == 1;int $s = $dir == 0;string $unpluggedConnections[] = `listConnections -c 1 -d $d -et 1 -p 0 -s $s -t $type $n`;int $numConnections = `size $unpluggedConnections`;if (!$numConnections) return $nodes;if (`fmod $numConnections 2` != 0) return $nodes;string $pluggedConnections[] = `listConnections -c 1 -d $d -et 1 -p 1 -s $s -t $type $n`;if (`size $pluggedConnections` != $numConnections) return $nodes;for ($i = 0; $i < $numConnections; $i += 2) {if ($dir) {$sourceAttributes[`size $sourceAttributes`] = $pluggedConnections[$i];$targetAttributes[`size $targetAttributes`] = $pluggedConnections[$i + 1];}else {$sourceAttributes[`size $sourceAttributes`] = $pluggedConnections[$i + 1];$targetAttributes[`size $targetAttributes`] = $pluggedConnections[$i];}$nodes[`size $nodes`] = $unpluggedConnections[$i + 1];}$nodes = stringArrayRemoveDuplicates($nodes);return $nodes;}proc connectAttributes(string $sourceAttributes[], string $targetAttributes[], int $force) {int $numAttributes = `size $sourceAttributes`;if (`size $targetAttributes` != $numAttributes) return;for ($i = 0; $i < $numAttributes; $i++) {string $sourceAttribute = $sourceAttributes[$i];string $targetAttribute = $targetAttributes[$i];if (`isConnected -iuc $sourceAttribute $targetAttribute`) continue;if ($force) {connectAttr -f $sourceAttribute $targetAttribute;}else {connectAttr $sourceAttribute $targetAttribute;}}}proc disconnectAttributes(string $sourceAttributes[], string $targetAttributes[]) {int $numAttributes = `size $sourceAttributes`;if (`size $targetAttributes` != $numAttributes) return;for ($i = 0; $i < $numAttributes; $i++) {string $sourceAttribute = $sourceAttributes[$i];string $targetAttribute = $targetAttributes[$i];if (!`isConnected -iuc $sourceAttribute $targetAttribute`) continue;disconnectAttr $sourceAttribute $targetAttribute;}}
+// 文字列
+/*1.0.0*/proc string escapeStringForPython(string $input) {string $escapedText;int $size = `size $input`;for ($i = 1; $i <= $size; $i++) {string $c = `substring $input $i $i`;switch ($c) {case "\\": $escapedText += "\\\\"; break;case "'": $escapedText += "\\'"; break;case "\n": $escapedText += "\\n"; break;case "\r": $escapedText += "\\r"; break;default: $escapedText += $c; break;}}return $escapedText;}proc string strip(string $input) {return `python("'" + escapeStringForPython($input) + "'.strip()")`;}proc string regexSearchGroup(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");string $result = `python("(lambda m: m.group() if m else None)(re.search(" + $pattern + ", " + $input + "))")`;return $result;}proc int[] regexSearchSpan(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");int $result[] = `python("(lambda m: m.span() if m else None)(re.search(" + $pattern + ", " + $input + "))")`;return $result;}proc string[] regexMatchGroups(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");string $result[] = `python("tuple([m.group() for m in re.finditer(" + $pattern + ", " + $input + ")])")`;return $result;}proc string[] regexMatchSubGroups(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");string $result[] = `python("sum([m.groups() for m in re.finditer(" + $pattern + ", " + $input + ")], ())")`;return $result;}proc int[] regexMatchSpans(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");int $result[] = `python("sum([m.span() for m in re.finditer(" + $pattern + ", " + $input + ")], ())")`;return $result;}proc string[] regexSplit(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");string $result[] = `python("tuple(re.split(" + $pattern + ", " + $input + "))")`;return $result;}proc string regexReplace(string $pattern,string $replacement,string $input,string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPython($pattern) + "'";$replacement = "'" + escapeStringForPython($replacement) + "'";$input = "'" + escapeStringForPython($input) + "'";python("import re");string $result = `python("re.sub(" + $pattern + ", " + $replacement + ", " + $input + ")")`;return $result;}proc string getClipboardText() {python("from PySide2 import QtGui");python("cb = QtGui.QClipboard()");return python("cb.text()");}proc setClipboardText(string $text) {python("from PySide2 import QtGui");python("cb = QtGui.QClipboard()");python("cb.setText('" + escapeStringForPython($text) + "')");}
+// UIコントロール
+/*2.0.0*/global string $nkUIControls[];proc appendUIControls(string $controls[]) {global string $nkUIControls[];for ($control in $controls) {$nkUIControls[`size $nkUIControls`] = $control;}}proc string getUIControl(string $root, string $end) {global string $nkUIControls[];string $path;for ($control in $nkUIControls) {string $buffer[];int $depth = `tokenize $control "|" $buffer`;string $first = ($depth > 0) ? $buffer[0] : "";string $last = ($depth > 0) ? $buffer[$depth - 1] : "";if ($first == $root && $last == $end) {$path = $control;break;}}return $path;}proc removeUIControls(string $root, string $end) {global string $nkUIControls[];string $paths[];for ($control in $nkUIControls) {string $buffer[];int $depth = `tokenize $control "|" $buffer`;string $first = ($depth > 0) ? $buffer[0] : "";string $last = ($depth > 0) ? $buffer[$depth - 1] : "";int $shouldRemove = (!`size $end`) ? $first == $root : $first == $root && $last == $end;if ($shouldRemove) $paths[`size $paths`] = $control;}if (`size $paths` > 0) {$nkUIControls = stringArrayRemove($paths, $nkUIControls);}}proc string uiControlTypeOf(string $control) {string $type = `objectTypeUI $control`;if ($type == "floatingWindow") $type = "window";return $type;}proc int qEnable(string $control) {string $type = uiControlTypeOf($control);if ($type == "window" || $type == "workspaceControl") return true;return `control -q -en $control`;}proc eEnable(int $value, string $control) {string $type = uiControlTypeOf($control);if ($type == "window" || $type == "workspaceControl") return;control -e -en $value $control;}proc int qExists(string $control) {return `control -q -ex $control`;}proc int qVisible(string $control) {return `control -q -vis $control`;}proc eVisible(int $value, string $control) {control -e -vis $value $control;}proc float qFloat(string $type, string $flag, string $control) {return `eval $type "-q" $flag $control`;}proc eFloat(string $type, string $flag, float $value, string $control) {eval $type "-e" $flag $value $control;}proc int qInt(string $type, string $flag, string $control) {return `eval $type "-q" $flag $control`;}proc eInt(string $type, string $flag, int $value, string $control) {eval $type "-e" $flag $value $control;}proc string qString(string $type, string $flag, string $control) {return `eval $type "-q" $flag $control`;}proc eString(string $type, string $flag, string $value, string $control) {eval $type "-e" $flag ("\"" + $value + "\"") $control;}proc float[] qFloatArray(string $type, string $flag, string $control) {return `eval $type "-q" $flag $control`;}proc int[] qIntArray(string $type, string $flag, string $control) {return `eval $type "-q" $flag $control`;}proc string[] qStringArray(string $type, string $flag, string $control) {return `eval $type "-q" $flag $control`;}proc eStringArray(string $type, string $flag, string $values[], string $control) {for ($value in $values) {eString($type, $flag, $value, $control);}}proc eOrderedFloat(string $type, string $flag, float $values[], string $control) {for ($i = 0; $i < `size $values`; $i++) {eFloat($type, ($flag + ($i + 1)), $values[$i], $control);}}proc eOrderedInt(string $type, string $flag, int $values[], string $control) {for ($i = 0; $i < `size $values`; $i++) {eInt($type, ($flag + ($i + 1)), $values[$i], $control);}}proc eOrderedString(string $type, string $flag, string $values[], string $control) {for ($i = 0; $i < `size $values`; $i++) {eString($type, ($flag + ($i + 1)), $values[$i], $control);}}proc int qIndex(string $type, string $flag, string $control) {return (qInt($type, $flag, $control) - 1);}proc eIndex(string $type, string $flag, int $index, string $control) {eInt($type, $flag, ($index + 1), $control);}proc int[] qIndexArray(string $type, string $flag, string $control) {int $indices[] = qIntArray($type, $flag, $control);for ($i = 0; $i < `size $indices`; $i++) $indices[$i] -= 1;return $indices;}proc eIndexArray(string $type, string $flag, int $indices[], string $control) {for ($i in $indices) {eInt($type, $flag, $i + 1, $control);}}proc int qFirstIndex(string $type, string $flag, string $control) {int $indices[] = qIndexArray($type, $flag, $control);return  ((`size $indices`) ? $indices[0] : -1);}proc string qFirstString(string $type, string $flag, string $control) {string $values[] = qStringArray($type, $flag, $control);return  ((`size $values`) ? $values[0] : "");}proc eIntString(string $type, string $flag, int $index, string $value, string $control) {eval $type "-e" $flag $index ("\"" + $value + "\"") $control;}proc eIndexString(string $type, string $flag, int $index, string $value, string $control) {eIntString($type, $flag, $index + 1, $value, $control);}proc executeUIControl(string $type, string $flag, string $control) {eval $type "-e" $flag $control;}proc string getParentableWindow(string $control) {if (uiControlTypeOf($control) == "workspaceControl" && !qInt("workspaceControl", "-fl", $control)) {return "MayaWindow";}else {return $control;}}proc windowClose(string $control) {if (qExists($control)) {string $type = uiControlTypeOf($control);switch ($type) {case "window": deleteUI $control; break;case "workspaceControl": executeUIControl("workspaceControl", "-cl", $control);break;default: break;}}}proc windowPrefRemove(string $type, string $control) {if (qExists($control)) windowClose($control);switch ($type) {case "window": if (qInt("windowPref", "-ex", $control)) {windowPref -r $control;}break;case "workspaceControl": if (qInt("workspaceControlState", "-ex", $control)) {workspaceControlState -r $control;}break;default: break;}}proc string buildWorkspaceControl(string $workspaceControlName,string $label,string $buildProcName,string $buildProcFilename) {string $control = $workspaceControlName;if (!qExists($workspaceControlName)) {string $uiScript = "if (!`exists " + $buildProcName + "`)" + " source \"" + $buildProcFilename + "\"; " + $buildProcName + "();";$control = `workspaceControl -dup false -fl true -l $label -rt false -ui $uiScript$workspaceControlName`;}return $control;}
+
+// /////////////////////////////////////////////////////////////////////////////
+// ドメイン
+// /////////////////////////////////////////////////////////////////////////////
+/*-
+@param $n <string>
+@returns <int>
+*/
+proc int isValidTransform(string $n) {
+  return (
+    `objExists $n`
+        && `objectType $n` == "transform"
+        && `attributeQuery -n $n -ex "shapeTranslate"`
+        && `getAttr -typ ($n + ".shapeTranslate")` == "double3"
+        && `attributeQuery -n $n -ex "shapeRotate"`
+        && `getAttr -typ ($n + ".shapeRotate")` == "double3"
+        && `attributeQuery -n $n -ex "shapeScale"`
+        && `getAttr -typ ($n + ".shapeScale")` == "double3"
+  );
+}
+
+/*-
+@param $n <string>
+@returns <int>
+*/
+proc int isValidNurbsCurve(string $n) {
+  return (
+    `objExists $n`
+        && `objectType $n` == "nurbsCurve"
+        && `attributeQuery -n $n -ex "sourceCurve"`
+        && `getAttr -typ ($n + ".sourceCurve")` == "nurbsCurve"
+  );
+}
+
+// -----------------------------------------------------------------------------
+// カーブのコード化
+// -----------------------------------------------------------------------------
+/*-
+@param $n <string>
+@param $numEPs <int>
+@returns <string>
+*/
+proc string generateEditPointFlag(string $n, int $numEPs) {
+  // print("generateEditPointFlag\n"); // debug
+  // print("  n     :" + $n + "\n"); // debug
+  // print("  numEPs:" + $numEPs + "\n"); // debug
+  string $epFlag;
+  if (!(`objExists $n` && `objectType $n` == "nurbsCurve")) return $epFlag;
+  for ($j = 0; $j < $numEPs; $j++) {
+    float $eps[] = `getAttr ($n + ".eps[" + $j + "]")`;
+    $epFlag += " -ep " + floatArrayToString($eps, " ");
+  }
+  return $epFlag;
+}
+
+/*-
+@param $n <string>
+@returns <string>
+*/
+proc string generateKnotFlag(string $n) {
+  // print("generateKnotFlag\n"); // debug
+  // print("  n:" + $n + "\n"); // debug
+  string $kFlag;
+  if (!(`objExists $n` && `objectType $n` == "nurbsCurve")) return $kFlag;
+  string $ciNode = `createNode "curveInfo" -ss`;
+  connectAttr ($n + ".ws") ($ciNode + ".ic");
+  float $knots[] = `getAttr ($ciNode + ".kn")`;
+  delete $ciNode;
+  for ($i = 0; $i < `size $knots`; $i++) {
+    $kFlag += " -k " + $knots[$i];
+  }
+  return $kFlag;
+}
+
+/*-
+@param $n <string>
+@param $numCVs <int>
+@returns <string>
+*/
+proc string generatePointFlag(string $n, int $numCVs) {
+  // print("generatePointFlag\n"); // debug
+  // print("  n     :" + $n + "\n"); // debug
+  // print("  numCVs:" + $numCVs + "\n"); // debug
+  string $pointFlag;
+  if (!(`objExists $n` && `objectType $n` == "nurbsCurve")) return $pointFlag;
+  for ($j = 0; $j < $numCVs; $j++) {
+    float $cp[] = `getAttr ($n + ".cp[" + $j + "]")`;
+    $pointFlag += " -p " + floatArrayToString($cp, " ");
+  }
+  return $pointFlag;
+}
+
+/*-
+@param $n <string>
+@returns <string>
+@remarks
+| 値の意味と順序                 | 値の構文                 |
+| ------------------------------ | ------------------------ |
+| `degree`                       | `int`                    |
+| `spans`                        | `int`                    |
+| `form`                         | `int`                    |
+| `isRational`                   | `boolean`                |
+| `dimension`                    | `int`                    |
+| `knotCount`                    | `int`                    |
+| `{knotValue}`                  | `{double}`               |
+| `cvCount`                      | `int`                    |
+| `{xCVValue yCVValue zCVValue}` | `{double double double}` |
+*/
+proc string generateNurbsCurveString(string $n) {
+  // print("generateNurbsCurveString\n"); // debug
+  // print("  n:" + $n + "\n"); // debug
+  string $ncString;
+  if (!(`objExists $n` && `objectType $n` == "nurbsCurve")) return $ncString;
+
+  int $d = `getAttr ($n + ".d")`;
+  int $s = `getAttr ($n + ".s")`;
+  int $f = `getAttr ($n + ".f")`;
+  $ncString += $d + " " + $s + " " + $f + " 0 3";
+
+  string $ciNode = `createNode "curveInfo" -ss`;
+  connectAttr ($n + ".ws") ($ciNode + ".ic");
+  float $knots[] = `getAttr ($ciNode + ".kn")`;
+  delete $ciNode;
+  int $numKnots = `size $knots`;
+  $ncString += " " + $numKnots;
+  for ($i = 0; $i < $numKnots; $i++) {
+    $ncString += " " + $knots[$i];
+  }
+
+  int $numCVs = $d + $s;
+  $ncString += " " + $numCVs;
+  for ($i = 0; $i < $numCVs; $i++) {
+    float $cp[] = `getAttr ($n + ".cp[" + $i + "]")`;
+    $ncString += " " + floatArrayToString($cp, " ");
+  }
+  return $ncString;
+}
+
+/*-
+@param $sourceNodes <string[]>
+@param $debug <boolean>
+@returns <string>
+*/
+proc string generateCurveCommand(string $sourceNodes[], int $debug) {
+  // print("generateCurveCommand\n"); // debug
+  // print("  sourceNodes:{\n    " + stringArrayToString($sourceNodes, ",\n    ") + "\n  }\n"); // debug
+  // print("  debug      :" + $debug + "\n"); // debug
+  string $command;
+  if (!`size $sourceNodes`) return $command;
+
+  $sourceNodes = `sort $sourceNodes`;
+
+  string $curveNodes[];
+  string $deletableNodes[];
+  for ($n in $sourceNodes) {
+    if (`objectType $n` != "transform") continue;
+    string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $n`;
+    for ($shapeNode in $shapeNodes) {
+      $curveNodes[`size $curveNodes`] = $shapeNode;
+    }
+    if (`size $shapeNodes`) {
+      $deletableNodes[`size $deletableNodes`] = $n;
+    }
+  }
+  // print("  curveNodes    :{\n    " + stringArrayToString($curveNodes, ",\n    ") + "\n  }\n"); // debug
+  // print("  deletableNodes:{\n    " + stringArrayToString($deletableNodes, ",\n    ") + "\n  }\n"); // debug
+  int $numCurveNodes = `size $curveNodes`;
+  if (!$numCurveNodes) return $command;
+
+  string $lines[];
+
+  // t:transform
+  $lines[`size $lines`] = "string $t = `group -em -n \"bundleCurve1\"`;";
+
+  if ($debug) $lines[`size $lines`] = "";
+
+  $lines[`size $lines`] = "addAttr -at \"double3\" -k 0 -ln \"shapeTranslate\" -sn \"st\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"doubleLinear\" -k 0 -ln \"shapeTranslateX\" -sn \"stx\" -p \"shapeTranslate\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"doubleLinear\" -k 0 -ln \"shapeTranslateY\" -sn \"sty\" -p \"shapeTranslate\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"doubleLinear\" -k 0 -ln \"shapeTranslateZ\" -sn \"stz\" -p \"shapeTranslate\" $t;";
+
+  if ($debug) $lines[`size $lines`] = "";
+
+  $lines[`size $lines`] = "addAttr -at \"double3\" -k 0 -ln \"shapeRotate\" -sn \"sr\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"doubleAngle\" -k 0 -ln \"shapeRotateX\" -sn \"srx\" -p \"shapeRotate\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"doubleAngle\" -k 0 -ln \"shapeRotateY\" -sn \"sry\" -p \"shapeRotate\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"doubleAngle\" -k 0 -ln \"shapeRotateZ\" -sn \"srz\" -p \"shapeRotate\" $t;";
+
+  if ($debug) $lines[`size $lines`] = "";
+
+  $lines[`size $lines`] = "addAttr -at \"double3\" -k 0 -ln \"shapeScale\" -sn \"ss\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"double\" -k 0 -ln \"shapeScaleX\" -sn \"ssx\" -p \"shapeScale\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"double\" -k 0 -ln \"shapeScaleY\" -sn \"ssy\" -p \"shapeScale\" $t;";
+  $lines[`size $lines`] = "addAttr -at \"double\" -k 0 -ln \"shapeScaleZ\" -sn \"ssz\" -p \"shapeScale\" $t;";
+  $lines[`size $lines`] = "setAttr ($t + \".ss\") -typ \"double3\" 1.0 1.0 1.0;";
+
+  if ($debug) $lines[`size $lines`] = "";
+
+  if ($debug) {
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".stx\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".sty\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".stz\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".srx\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".sry\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".srz\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".ssx\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".ssy\");";
+    $lines[`size $lines`] = "setAttr -cb 1 ($t + \".ssz\");";
+  }
+  else {
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".stx\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".sty\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".stz\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".srx\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".sry\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".srz\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".ssx\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".ssy\");";
+    $lines[`size $lines`] = "setAttr -l 1 ($t + \".ssz\");";
+  }
+
+  if ($debug) {
+    $lines[`size $lines`] = "";
+
+    // m:matrix
+    $lines[`size $lines`] = "string $m = `createNode \"composeMatrix\" -ss`;";
+    $lines[`size $lines`] = "connectAttr -f ($t + \".st\") ($m + \".it\");";
+    $lines[`size $lines`] = "connectAttr -f ($t + \".sr\") ($m + \".ir\");";
+    $lines[`size $lines`] = "connectAttr -f ($t + \".ss\") ($m + \".is\");";
+  }
+
+  if ($debug) $lines[`size $lines`] = "";
+
+  // ns:nodes
+  // ds:deletableNodes
+  $lines[`size $lines`] = "string $ns[];";
+  $lines[`size $lines`] = "string $ds[];";
+  for ($i = 0; $i < $numCurveNodes; $i++) {
+    string $sourceCurveNode = $curveNodes[$i];
+    if (`objectType $sourceCurveNode` != "nurbsCurve") continue;
+
+    // ヒストリを削除しないとCVの値が0になってしまう
+    delete -ch $sourceCurveNode;
+
+    int $d = `getAttr ($sourceCurveNode + ".d")`;
+    int $s = `getAttr ($sourceCurveNode + ".s")`;
+    int $f = `getAttr ($sourceCurveNode + ".f")`;
+    int $numEPs = $s + 1;
+    int $numCVs = $d + $s;
+
+    if ($debug) $lines[`size $lines`] = "";
+
+    string $perFlag = ($f == 2) ? " -per 1" : "";
+    // tt:tempTransform
+    if ($f == 0) {
+      string $epFlag = generateEditPointFlag($sourceCurveNode, $numEPs);
+      if (!`size $epFlag`) return $command;
+
+      $lines[`size $lines`] = "string $tt" + $i + " = `curve -d " + $d + " -os" + $epFlag + "`;";
+    }
+    else {
+      string $kFlag = generateKnotFlag($sourceCurveNode);
+      if (!`size $kFlag`) return $command;
+
+      string $pointFlag = generatePointFlag($sourceCurveNode, $numCVs);
+      if (!`size $pointFlag`) return $command;
+
+      $lines[`size $lines`] = "string $tt" + $i + " = `curve -d " + $d + " -os" + $perFlag + $kFlag + $pointFlag + "`;";
+    }
+    // ss:shapes
+    $lines[`size $lines`] = "string $ss" + $i + "[] = `listRelatives -f -s -typ \"nurbsCurve\" $tt" + $i + "`;";
+    // n:nurbsCurve
+    $lines[`size $lines`] = "string $nc" + $i + " = $ss" + $i + "[0];";
+
+    if ($f == 1) {
+      $lines[`size $lines`] = "closeCurve -ch 0 -ps 1 -rpo 1 $nc" + $i + ";";
+    }
+
+    if ($debug) $lines[`size $lines`] = "";
+
+    $lines[`size $lines`] = "$ns[`size $ns`] = $nc" + $i + ";";
+    $lines[`size $lines`] = "$ds[`size $ds`] = $tt" + $i + ";";
+
+    string $curveString = generateNurbsCurveString($sourceCurveNode);
+    if (!`size $curveString`) return $command;
+
+    if ($debug) $lines[`size $lines`] = "";
+
+    $lines[`size $lines`] = "addAttr -dt \"nurbsCurve\" -k 0 -ln \"sourceCurve\" -sn \"sc\" $nc" + $i + ";";
+    $lines[`size $lines`] = "setAttr ($nc" + $i + " + \".sc\") -typ \"nurbsCurve\" " + $curveString + ";";
+
+    if ($debug) {
+      $lines[`size $lines`] = "";
+
+      $lines[`size $lines`] = "string $ci" + $i + " = `createNode \"curveInfo\" -ss`;";
+      $lines[`size $lines`] = "connectAttr ($nc" + $i + " + \".sc\") ($ci" + $i + " + \".ic\");";
+
+      for ($j = 0; $j < $numCVs; $j++) {
+        $lines[`size $lines`] = "";
+
+        $lines[`size $lines`] = "string $vp" + $j + " = `createNode \"vectorProduct\" -ss`;";
+        $lines[`size $lines`] = "string $cm" + $j + " = `createNode \"colorMath\" -ss`;";
+        $lines[`size $lines`] = "setAttr ($vp" + $j + " + \".operation\") 3;";
+        $lines[`size $lines`] = "setAttr ($cm" + $j + " + \".operation\") 0;";
+        $lines[`size $lines`] = "connectAttr -f ($ci" + $i + " + \".cp[" + $j + "]\") ($vp" + $j + " + \".input1\");";
+        $lines[`size $lines`] = "connectAttr -f ($m + \".omat\") ($vp" + $j + " + \".m\");";
+        $lines[`size $lines`] = "connectAttr -f ($vp" + $j + " + \".o\") ($cm" + $j + " + \"._ca\");";
+        $lines[`size $lines`] = "connectAttr -f ($t + \".st\") ($cm" + $j + " + \"._cb\");";
+        $lines[`size $lines`] = "connectAttr -f ($cm" + $j + " + \".oc\") ($nc" + $i + " + \".cp[" + $j + "]\");";
+      }
+    }
+  }
+
+  if ($debug) $lines[`size $lines`] = "";
+
+  $lines[`size $lines`] = "parent -r -s $ns $t;";
+  $lines[`size $lines`] = "string $bss[] = `listRelatives -f -s -typ \"nurbsCurve\" $t`;";
+  $lines[`size $lines`] = "for ($i = 0; $i < `size $bss`; $i++) {";
+  $lines[`size $lines`] = "string $bn = $bss[$i];";
+  $lines[`size $lines`] = "rename $bn ($t + \"Shape\" + ($i + 1));";
+  $lines[`size $lines`] = "}";
+  $lines[`size $lines`] = "if (`size $ds`) delete $ds;";
+
+  if ($debug) {
+    $command = "{\n  " + stringArrayToString($lines, "\n  ") + "\n}";
+  }
+  else {
+    $command = "{" + stringArrayToString($lines, " ") + "}";
+  }
+  return $command;
+}
+
+// -----------------------------------------------------------------------------
+// 編集モード
+// -----------------------------------------------------------------------------
+/*-
+@param $n <string>
+@returns <string[]>
+*/
+proc string[] collectCurveNodes(string $n) {
+  string $curveNodes[];
+  if (!isValidTransform($n)) return $curveNodes;
+  string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $n`;
+  for ($shapeNode in $shapeNodes) {
+    if (!isValidNurbsCurve($shapeNode)) continue;
+    $curveNodes[`size $curveNodes`] = $shapeNode;
+  }
+  return $curveNodes;
+}
+
+/*-
+@param $sourceNodes <string[]>
+@returns <>
+*/
+proc curveEditMode(string $sourceNodes[]) {
+  // print("curveEditMode\n"); // debug
+  // print("  sourceNodes:{\n    " + stringArrayToString($sourceNodes, ",\n    ") + "\n  }\n"); // debug
+  if (!`size $sourceNodes`) return;
+
+  for ($t in $sourceNodes) {
+    // print("  t:" + $t + "\n"); // debug
+    if (!isValidTransform($t)) continue;
+
+    setAttr -cb true ($t + ".stx"); setAttr -l false ($t + ".stx");
+    setAttr -cb true ($t + ".sty"); setAttr -l false ($t + ".sty");
+    setAttr -cb true ($t + ".stz"); setAttr -l false ($t + ".stz");
+    setAttr -cb true ($t + ".srx"); setAttr -l false ($t + ".srx");
+    setAttr -cb true ($t + ".sry"); setAttr -l false ($t + ".sry");
+    setAttr -cb true ($t + ".srz"); setAttr -l false ($t + ".srz");
+    setAttr -cb true ($t + ".ssx"); setAttr -l false ($t + ".ssx");
+    setAttr -cb true ($t + ".ssy"); setAttr -l false ($t + ".ssy");
+    setAttr -cb true ($t + ".ssz"); setAttr -l false ($t + ".ssz");
+
+    string $mSources[];
+    string $mTargets[];
+    string $ms[] = getConnections($t, 1, "composeMatrix", $mSources, $mTargets);
+    // print("    ms:{\n      " + stringArrayToString($ms, ",\n      ") + "\n    }\n"); // debug
+    int $numMSources = `size $mSources`;
+    if (`size $ms`) continue;
+
+    string $curveNodes[] = collectCurveNodes($t);
+    // print("    curveNodes:{\n      " + stringArrayToString($curveNodes, ",\n      ") + "\n    }\n"); // debug
+    int $numCurveNodes = `size $curveNodes`;
+    if (!$numCurveNodes) continue;
+
+    string $m = `createNode "composeMatrix" -ss`;
+    connectAttr -f ($t + ".st") ($m + ".it");
+    connectAttr -f ($t + ".sr") ($m + ".ir");
+    connectAttr -f ($t + ".ss") ($m + ".is");
+
+    for ($i = 0; $i < $numCurveNodes; $i++) {
+      string $nc = $curveNodes[$i];
+      if (!isValidNurbsCurve($nc)) continue;
+
+      int $d = `getAttr ($nc + ".d")`;
+      int $s = `getAttr ($nc + ".s")`;
+      int $f = `getAttr ($nc + ".f")`;
+      int $numEPs = $s + 1;
+      int $numCVs = $d + $s;
+
+      string $ci = `createNode "curveInfo" -ss`;
+      connectAttr ($nc + ".sc") ($ci + ".ic");
+
+      for ($j = 0; $j < $numCVs; $j++) {
+        string $vp = `createNode "vectorProduct" -ss`;
+        string $cm = `createNode "colorMath" -ss`;
+        setAttr ($vp + ".operation") 3;
+        setAttr ($cm + ".operation") 0;
+        connectAttr -f ($ci + ".cp[" + $j + "]") ($vp + ".input1");
+        connectAttr -f ($m + ".omat") ($vp + ".m");
+        connectAttr -f ($vp + ".o") ($cm + "._ca");
+        connectAttr -f ($t + ".st") ($cm + "._cb");
+        connectAttr -f ($cm + ".oc") ($nc + ".cp[" + $j + "]");
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// カーブロック
+// -----------------------------------------------------------------------------
+/*-
+@param $n <string>
+@returns <string[]>
+*/
+proc string[] collectCurveNodes(string $n) {
+  string $curveNodes[];
+  if (!isValidTransform($n)) return $curveNodes;
+  string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $n`;
+  for ($shapeNode in $shapeNodes) {
+    if (!isValidNurbsCurve($shapeNode)) continue;
+    $curveNodes[`size $curveNodes`] = $shapeNode;
+  }
+  return $curveNodes;
+}
+
+/*-
+@param $nodes <string[]>
+@returns <>
+*/
+proc deleteNodes(string $nodes[]) {
+  for ($n in $nodes) {
+    if (`objExists $n`) delete $n;
+  }
+}
+
+/*-
+@param $sourceNodes <string[]>
+@returns <>
+*/
+proc curveLock(string $sourceNodes[]) {
+  // print("curveLock\n"); // debug
+  // print("  sourceNodes:{\n    " + stringArrayToString($sourceNodes, ",\n    ") + "\n  }\n"); // debug
+  if (!`size $sourceNodes`) return;
+
+  for ($t in $sourceNodes) {
+    // print("  t:" + $t + "\n"); // debug
+    if (!isValidTransform($t)) continue;
+
+    setAttr -cb false ($t + ".stx"); setAttr -l true ($t + ".stx");
+    setAttr -cb false ($t + ".sty"); setAttr -l true ($t + ".sty");
+    setAttr -cb false ($t + ".stz"); setAttr -l true ($t + ".stz");
+    setAttr -cb false ($t + ".srx"); setAttr -l true ($t + ".srx");
+    setAttr -cb false ($t + ".sry"); setAttr -l true ($t + ".sry");
+    setAttr -cb false ($t + ".srz"); setAttr -l true ($t + ".srz");
+    setAttr -cb false ($t + ".ssx"); setAttr -l true ($t + ".ssx");
+    setAttr -cb false ($t + ".ssy"); setAttr -l true ($t + ".ssy");
+    setAttr -cb false ($t + ".ssz"); setAttr -l true ($t + ".ssz");
+
+    string $curveNodes[] = collectCurveNodes($t);
+    // print("    curveNodes:{\n      " + stringArrayToString($curveNodes, ",\n      ") + "\n    }\n"); // debug
+    int $numCurveNodes = `size $curveNodes`;
+    if (!$numCurveNodes) continue;
+
+    string $mSources[];
+    string $mTargets[];
+    string $ms[] = getConnections($t, 1, "composeMatrix", $mSources, $mTargets);
+    // print("    ms:{\n      " + stringArrayToString($ms, ",\n      ") + "\n    }\n"); // debug
+    // print("    mSources:{\n      " + stringArrayToString($mSources, ",\n      ") + "\n    }\n"); // debug
+    // print("    mTargets:{\n      " + stringArrayToString($mTargets, ",\n      ") + "\n    }\n"); // debug
+    int $numMSources = `size $mSources`;
+    if (`size $ms` != 1) continue;
+    if ($numMSources != 3) continue;
+    if (`size $mTargets` != $numMSources) continue;
+
+    string $mvpSources[];
+    string $mvpTargets[];
+    string $mvps[] = getConnections($ms[0], 1, "vectorProduct", $mvpSources, $mvpTargets);
+    // print("    mvps:{\n      " + stringArrayToString($mvps, ",\n      ") + "\n    }\n"); // debug
+    // print("    mvpSources:{\n      " + stringArrayToString($mvpSources, ",\n      ") + "\n    }\n"); // debug
+    // print("    mvpTargets:{\n      " + stringArrayToString($mvpTargets, ",\n      ") + "\n    }\n"); // debug
+    int $numMvpSources = `size $mvpSources`;
+    if (!`size $mvps`) continue;
+    if (!$numMvpSources) continue;
+    if (`size $mvpTargets` != $numMvpSources) continue;
+
+    string $tcmSources[];
+    string $tcmTargets[];
+    string $tcms[] = getConnections($t, 1, "colorMath", $tcmSources, $tcmTargets);
+    // print("    tcms:{\n      " + stringArrayToString($tcms, ",\n      ") + "\n    }\n"); // debug
+    // print("    tcmSources:{\n      " + stringArrayToString($tcmSources, ",\n      ") + "\n    }\n"); // debug
+    // print("    tcmTargets:{\n      " + stringArrayToString($tcmTargets, ",\n      ") + "\n    }\n"); // debug
+    int $numTcmSources = `size $tcmSources`;
+    if (!`size $tcms`) continue;
+    if (!$numTcmSources) continue;
+    if (`size $tcmTargets` != $numTcmSources) continue;
+
+    disconnectAttributes($mSources, $mTargets);
+    disconnectAttributes($mvpSources, $mvpTargets);
+    disconnectAttributes($tcmSources, $tcmTargets);
+    deleteNodes($ms);
+
+    for ($i = 0; $i < $numCurveNodes; $i++) {
+      string $nc = $curveNodes[$i];
+      // print("    nc:" + $nc + "\n"); // debug
+      if (!isValidNurbsCurve($nc)) continue;
+
+      int $d = `getAttr ($nc + ".d")`;
+      int $s = `getAttr ($nc + ".s")`;
+      int $numCVs = $d + $s;
+
+      string $cmSources[];
+      string $cmTargets[];
+      string $cms[] = getConnections($nc, 0, "colorMath", $cmSources, $cmTargets);
+      // print("      cms:{\n        " + stringArrayToString($cms, ",\n        ") + "\n      }\n"); // debug
+      // print("      cmSources:{\n        " + stringArrayToString($cmSources, ",\n        ") + "\n      }\n"); // debug
+      // print("      cmTargets:{\n        " + stringArrayToString($cmTargets, ",\n        ") + "\n      }\n"); // debug
+      int $numCmSources = `size $cmSources`;
+      if (`size $cms` != $numCVs) continue;
+      if ($numCmSources != $numCVs) continue;
+      if (`size $cmTargets` != $numCmSources) continue;
+
+      disconnectAttributes($cmSources, $cmTargets);
+
+      string $ciSources[];
+      string $ciTargets[];
+      string $cis[] = getConnections($nc, 1, "curveInfo", $ciSources, $ciTargets);
+      // print("      cis:{\n        " + stringArrayToString($cis, ",\n        ") + "\n      }\n"); // debug
+      // print("      ciSources:{\n        " + stringArrayToString($ciSources, ",\n        ") + "\n      }\n"); // debug
+      // print("      ciTargets:{\n        " + stringArrayToString($ciTargets, ",\n        ") + "\n      }\n"); // debug
+      int $numCiSources = `size $ciSources`;
+      if (`size $cis` != 1) continue;
+      if ($numCiSources != 1) continue;
+      if (`size $ciTargets` != $numCiSources) continue;
+
+      string $vpSources[];
+      string $vpTargets[];
+      string $vps[] = getConnections($cis[0], 1, "vectorProduct", $vpSources, $vpTargets);
+      // print("      vps:{\n        " + stringArrayToString($vps, ",\n        ") + "\n      }\n"); // debug
+      // print("      vpSources:{\n        " + stringArrayToString($vpSources, ",\n        ") + "\n      }\n"); // debug
+      // print("      vpTargets:{\n        " + stringArrayToString($vpTargets, ",\n        ") + "\n      }\n"); // debug
+      int $numVpSources = `size $vpSources`;
+      if (`size $vps` != $numCVs) continue;
+      if ($numVpSources != $numCVs) continue;
+      if (`size $vpTargets` != $numVpSources) continue;
+
+      // vectorProductへの接続を先に切る
+      disconnectAttributes($vpSources, $vpTargets);
+
+      // 接続を切らずに削除
+      // disconnectAttributes($ciSources, $ciTargets);
+      deleteNodes($cis);
+
+      deleteNodes($vps);
+      deleteNodes($cms);
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// スクリプトジョブ
+// -----------------------------------------------------------------------------
+// /*-
+// @returns <>
+// */
+// proc registerScriptJob() {
+// }
+
+// /*-
+// @returns <>
+// */
+// proc unregisterScriptJob() {
+// }
+
+// /////////////////////////////////////////////////////////////////////////////
+// プレゼンテーション
+// /////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
+// UIコントロールイベントハンドラ
+// -----------------------------------------------------------------------------
+/*-
+@returns <>
+*/
+proc nkRigControllerWindowClosed() {
+  // print("nkRigControllerWindowClosed\n"); // debug
+  unsubscribePosesObservers();
+  removeUIControls("nkRigControllerWindow", "");
+}
+
+/*-
+@returns <>
+*/
+proc resetWindowMenuItemSelected() {
+  // print("resetWindowMenuItemSelected\n"); // debug
+  string $nkRigControllerWindow = getUIControl("nkRigControllerWindow", "nkRigControllerWindow");
+  // print("  nkRigControllerWindow:" + $nkRigControllerWindow + "\n"); // debug
+  windowPrefRemove("window", $nkRigControllerWindow);
+  nkRigController();
+}
+
+/*-
+@returns <>
+*/
+proc quitMenuItemSelected() {
+  // print("quitMenuItemSelected\n"); // debug
+  string $nkRigControllerWindow = getUIControl("nkRigControllerWindow", "nkRigControllerWindow");
+  // print("  nkRigControllerWindow:" + $nkRigControllerWindow + "\n"); // debug
+  windowClose($nkRigControllerWindow);
+}
+
+/*-
+@returns <>
+*/
+proc aboutMenuItemSelected() {
+  // print("aboutMenuItemSelected\n"); // debug
+  confirmDialog
+      -b "OK"
+      -db "OK"
+      -m (
+        "nkRigController " + (nkRigControllerVersion())
+            + "\n\nMIT License\nhttps://github.com/imaoki/nkRigController"
+      )
+      -p (getParentableWindow("nkRigControllerWindow"))
+      -t "About - nkRigController";
+}
+
+/*-
+@returns <>
+*/
+proc generateCodeButtonPressed() {
+  // print("generateCodeButtonPressed\n"); // debug
+  string $command = generateCurveCommand(`ls -l -sl -tr`, 0);
+  if (!`size $command`) return;
+
+  print("// nkRigController: Copied the following code to clipboard. //\n");
+  print($command + "\n");
+  setClipboardText($command + "\n");
+}
+
+/*-
+@returns <>
+*/
+proc editModeButtonPressed() {
+  // print("editModeButtonPressed\n"); // debug
+  curveEditMode(`ls -l -sl -tr`);
+}
+
+/*-
+@returns <>
+*/
+proc lockButtonPressed() {
+  // print("lockButtonPressed\n"); // debug
+  curveLock(`ls -l -sl -tr`);
+}
+
+/*-
+@returns <>
+*/
+proc curve1ButtonPressed() {
+  // print("curve1ButtonPressed\n"); // debug
+  {string $t = `group -em -n "bundleCurve1"`; addAttr -at "double3" -k 0 -ln "shapeTranslate" -sn "st" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateX" -sn "stx" -p "shapeTranslate" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateY" -sn "sty" -p "shapeTranslate" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateZ" -sn "stz" -p "shapeTranslate" $t; addAttr -at "double3" -k 0 -ln "shapeRotate" -sn "sr" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateX" -sn "srx" -p "shapeRotate" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateY" -sn "sry" -p "shapeRotate" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateZ" -sn "srz" -p "shapeRotate" $t; addAttr -at "double3" -k 0 -ln "shapeScale" -sn "ss" $t; addAttr -at "double" -k 0 -ln "shapeScaleX" -sn "ssx" -p "shapeScale" $t; addAttr -at "double" -k 0 -ln "shapeScaleY" -sn "ssy" -p "shapeScale" $t; addAttr -at "double" -k 0 -ln "shapeScaleZ" -sn "ssz" -p "shapeScale" $t; setAttr ($t + ".ss") -typ "double3" 1.0 1.0 1.0; setAttr -l 1 ($t + ".stx"); setAttr -l 1 ($t + ".sty"); setAttr -l 1 ($t + ".stz"); setAttr -l 1 ($t + ".srx"); setAttr -l 1 ($t + ".sry"); setAttr -l 1 ($t + ".srz"); setAttr -l 1 ($t + ".ssx"); setAttr -l 1 ($t + ".ssy"); setAttr -l 1 ($t + ".ssz"); string $ns[]; string $ds[]; string $tt0 = `curve -d 1 -os -ep -0.1736482978 0 0.9848074913 -ep 0 0 1.2 -ep 0.1736479998 0 0.9848075509`; string $ss0[] = `listRelatives -f -s -typ "nurbsCurve" $tt0`; string $nc0 = $ss0[0]; $ns[`size $ns`] = $nc0; $ds[`size $ds`] = $tt0; addAttr -dt "nurbsCurve" -k 0 -ln "sourceCurve" -sn "sc" $nc0; setAttr ($nc0 + ".sc") -typ "nurbsCurve" 1 2 0 0 3 3 0 1 2 3 -0.1736482978 0 0.9848074913 0 0 1.2 0.1736479998 0 0.9848075509; string $tt1 = `curve -d 3 -os -ep 0.1736481754 -6.026825781e-17 0.9842553437 -ep 0.7071067812 -4.329780281e-17 0.7071067812 -ep 1 -3.081487911e-33 8.326672685e-17 -ep 0.7071067812 4.329780281e-17 -0.7071067812 -ep 8.326672685e-17 6.123233996e-17 -1 -ep -0.7071067812 4.329780281e-17 -0.7071067812 -ep -1 4.622231867e-33 -8.326672685e-17 -ep -0.7071067812 -4.329780281e-17 0.7071067812 -ep -0.173648095 -6.02682587e-17 0.9842553582`; string $ss1[] = `listRelatives -f -s -typ "nurbsCurve" $tt1`; string $nc1 = $ss1[0]; $ns[`size $ns`] = $nc1; $ds[`size $ds`] = $tt1; addAttr -dt "nurbsCurve" -k 0 -ln "sourceCurve" -sn "sc" $nc1; setAttr ($nc1 + ".sc") -typ "nurbsCurve" 3 8 0 0 3 13 4.222677795 4.222677795 4.222677795 5 6 7 8 9 10 11 11.77732231 11.77732231 11.77732231 11 0.1736481754 -6.026825781e-17 0.9842553437 0.3737389575 -5.804958031e-17 0.9480215905 0.807704068 -4.442083704e-17 0.725447322 1.108194188 -9.25367921e-33 1.511240501e-16 0.7836116249 4.798237341e-17 -0.7836116249 6.785732323e-17 6.785732323e-17 -1.108194188 -0.7836116249 4.798237341e-17 -0.7836116249 -1.108194188 3.517735619e-33 -5.744898238e-17 -0.8077040568 -4.44208387e-17 0.7254473491 -0.3737389067 -5.804958191e-17 0.9480216165 -0.173648095 -6.02682587e-17 0.9842553582; parent -r -s $ns $t; string $bss[] = `listRelatives -f -s -typ "nurbsCurve" $t`; for ($i = 0; $i < `size $bss`; $i++) { string $bn = $bss[$i]; rename $bn ($t + "Shape" + ($i + 1)); } if (`size $ds`) delete $ds;}
+}
+
+/*-
+@returns <>
+*/
+proc curve2ButtonPressed() {
+  // print("curve2ButtonPressed\n"); // debug
+}
+
+/*-
+@returns <>
+*/
+proc curve3ButtonPressed() {
+  // print("curve3ButtonPressed\n"); // debug
+}
+
+/*-
+@returns <>
+*/
+proc curve4ButtonPressed() {
+  // print("curve4ButtonPressed\n"); // debug
+}
+
+/*-
+@returns <>
+*/
+proc curve5ButtonPressed() {
+  // print("curve5ButtonPressed\n"); // debug
+}
+
+// -----------------------------------------------------------------------------
+// ウィンドウ定義
+// -----------------------------------------------------------------------------
+/*-
+@returns <>
+*/
+proc buildMainWindow() {
+  // print("buildMainWindow\n"); // debug
+  windowClose("nkRigControllerWindow");
+
+  string $nkRigControllerWindow = `window
+      -mxb false
+      -mnb false
+      -s true
+      -t "nkRigController"
+      "nkRigControllerWindow"`;
+    string $outerForm = `formLayout "outerForm"`;
+      string $menuBar = `menuBarLayout
+          // -bgc 0.25 0.5 0.25
+          "menuBar"`;
+        string $fileMenu = `menu
+            -l "File"
+            "fileMenu"`;
+          string $resetWindowMenuItem = `menuItem
+              -l "Reset Window"
+              "resetWindowMenuItem"`;
+          menuItem -d true;
+          string $quitMenuItem = `menuItem
+              -l "Quit"
+              "quitMenuItem"`;
+        string $helpMenu = `menu
+            -hm true
+            -l "Help"
+            "helpMenu"`;
+          string $aboutMenuItem = `menuItem
+              -l "About nkRigController"
+              "aboutMenuItem"`;
+      setParent ..;
+
+      string $column = `columnLayout -adj true -rs 3 "column"`;
+        string $generateCodeButton = `button -l "Generate Code" "generateCodeButton"`;
+        string $editModeButton = `button -l "Edit Mode" "editModeButton"`;
+        string $lockButton = `button -l "Lock" "lockButton"`;
+        separator;
+        string $curve1Button = `button -l "Curve1" "curve1Button"`;
+        // string $curve2Button = `button -l "Curve2" "curve2Button"`;
+        // string $curve3Button = `button -l "Curve3" "curve3Button"`;
+        // string $curve4Button = `button -l "Curve4" "curve4Button"`;
+        // string $curve5Button = `button -l "Curve5" "curve5Button"`;
+      setParent ..;
+    setParent ..;
+
+  formLayout -e
+      -af $menuBar "top" 0
+      -af $menuBar "left" 0
+      -af $menuBar "right" 0
+      -ac $column "top" 0 $menuBar
+      -af $column "left" 5
+      -af $column "right" 5
+      -af $column "bottom" 5
+      $outerForm;
+
+  window -e -cc "nkRigControllerEventController(\"nkRigControllerWindow\", \"cc\", \"nkRigControllerWindow\");" $nkRigControllerWindow;
+  menuItem -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"resetWindowMenuItem\");" $resetWindowMenuItem;
+  menuItem -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"quitMenuItem\");" $quitMenuItem;
+  menuItem -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"aboutMenuItem\");" $aboutMenuItem;
+  button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"generateCodeButton\");" $generateCodeButton;
+  button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"editModeButton\");" $editModeButton;
+  button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"lockButton\");" $lockButton;
+  button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve1Button\");" $curve1Button;
+  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve2Button\");" $curve2Button;
+  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve3Button\");" $curve3Button;
+  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve4Button\");" $curve4Button;
+  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve5Button\");" $curve5Button;
+
+  // print("  " + $nkRigControllerWindow + "\n"); // debug
+  // print("  " + $outerForm + "\n"); // debug
+  // print("  " + $menuBar + "\n"); // debug
+  // print("  " + $fileMenu + "\n"); // debug
+  // print("  " + $resetWindowMenuItem + "\n"); // debug
+  // print("  " + $quitMenuItem + "\n"); // debug
+  // print("  " + $helpMenu + "\n"); // debug
+  // print("  " + $aboutMenuItem + "\n"); // debug
+  // print("  " + $column + "\n"); // debug
+  // print("  " + $generateCodeButton + "\n"); // debug
+  // print("  " + $editModeButton + "\n"); // debug
+  // print("  " + $lockButton + "\n"); // debug
+  // print("  " + $curve1Button + "\n"); // debug
+  // print("  " + $curve2Button + "\n"); // debug
+  // print("  " + $curve3Button + "\n"); // debug
+  // print("  " + $curve4Button + "\n"); // debug
+  // print("  " + $curve5Button + "\n"); // debug
+
+  appendUIControls({
+    $nkRigControllerWindow
+  });
+
+  showWindow $nkRigControllerWindow;
+}
+
+// -----------------------------------------------------------------------------
+// イベントコントローラ
+// -----------------------------------------------------------------------------
+/*-
+@param $window <string>
+@param $event <string>
+@param $control <string>
+@returns <>
+*/
+global proc nkRigControllerEventController(
+  string $window,
+  string $event,
+  string $control
+) {
+  // print("nkRigControllerEventController\n"); // debug
+  // print("  window :" + $window + "\n"); // debug
+  // print("  event  :" + $event + "\n"); // debug
+  // print("  control:" + $control + "\n"); // debug
+  switch ($window) {
+    case "nkRigControllerWindow":
+      switch ($event) {
+        case "c":
+          switch ($control) {
+            case "resetWindowMenuItem": resetWindowMenuItemSelected(); break;
+            case "quitMenuItem": quitMenuItemSelected(); break;
+            case "aboutMenuItem": aboutMenuItemSelected(); break;
+            case "generateCodeButton": generateCodeButtonPressed(); break;
+            case "editModeButton": editModeButtonPressed(); break;
+            case "lockButton": lockButtonPressed(); break;
+            case "curve1Button": curve1ButtonPressed(); break;
+            case "curve2Button": curve2ButtonPressed(); break;
+            case "curve3Button": curve3ButtonPressed(); break;
+            case "curve4Button": curve4ButtonPressed(); break;
+            case "curve5Button": curve5ButtonPressed(); break;
+            default: break;
+          }
+          break;
+        default: break;
+      }
+      break;
+    default: break;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// ドメインオブザーバ
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// システムオブザーバ
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// メイン
+// -----------------------------------------------------------------------------
+/*-
+@returns <string>
+*/
+global proc string nkRigControllerVersion() {
+  return "0.1.0";
+}
+
+/*-
+@returns <>
+*/
+global proc nkRigController() {
+  buildMainWindow();
+}
+
+/*
+eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkRigController/nkRigController.mel\"");
+nkRigController;
+*/
+
+// /////////////////////////////////////////////////////////////////////////////
+// テスト
+// /////////////////////////////////////////////////////////////////////////////
