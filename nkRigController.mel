@@ -48,24 +48,6 @@ proc int isValidNurbsCurve(string $n) {
 // -----------------------------------------------------------------------------
 /*-
 @param $n <string>
-@param $numEPs <int>
-@returns <string>
-*/
-proc string generateEditPointFlag(string $n, int $numEPs) {
-  // print("generateEditPointFlag\n"); // debug
-  // print("  n     :" + $n + "\n"); // debug
-  // print("  numEPs:" + $numEPs + "\n"); // debug
-  string $epFlag;
-  if (!(`objExists $n` && `objectType $n` == "nurbsCurve")) return $epFlag;
-  for ($j = 0; $j < $numEPs; $j++) {
-    float $eps[] = `getAttr ($n + ".eps[" + $j + "]")`;
-    $epFlag += " -ep " + floatArrayToString($eps, " ");
-  }
-  return $epFlag;
-}
-
-/*-
-@param $n <string>
 @returns <string>
 */
 proc string generateKnotFlag(string $n) {
@@ -250,7 +232,7 @@ proc string generateCurveCommand(string $sourceNodes[], int $debug) {
     string $sourceCurveNode = $curveNodes[$i];
     if (`objectType $sourceCurveNode` != "nurbsCurve") continue;
 
-    // ヒストリを削除しないとCVの値が0になってしまう
+    // ヒストリを削除しないとCVの値が正しく取得できない
     delete -ch $sourceCurveNode;
 
     int $d = `getAttr ($sourceCurveNode + ".d")`;
@@ -261,31 +243,30 @@ proc string generateCurveCommand(string $sourceNodes[], int $debug) {
 
     if ($debug) $lines[`size $lines`] = "";
 
-    string $perFlag = ($f == 2) ? " -per 1" : "";
+    string $dFlag = " -d " + $d;
+    string $perFlag = " -per " + (($f == 2) ? "1" : "0");
+    string $kFlag = generateKnotFlag($sourceCurveNode);
+    string $pointFlag = generatePointFlag($sourceCurveNode, $numCVs);
+    // print("  dFlag    :" + $dFlag + "\n"); // debug
+    // print("  perFlag  :" + $perFlag + "\n"); // debug
+    // print("  kFlag    :" + $kFlag + "\n"); // debug
+    // print("  pointFlag:" + $pointFlag + "\n"); // debug
+    if (!`size $kFlag`) return $command;
+    if (!`size $pointFlag`) return $command;
+
     // tt:tempTransform
-    if ($f == 0) {
-      string $epFlag = generateEditPointFlag($sourceCurveNode, $numEPs);
-      if (!`size $epFlag`) return $command;
-
-      $lines[`size $lines`] = "string $tt" + $i + " = `curve -d " + $d + " -os" + $epFlag + "`;";
-    }
-    else {
-      string $kFlag = generateKnotFlag($sourceCurveNode);
-      if (!`size $kFlag`) return $command;
-
-      string $pointFlag = generatePointFlag($sourceCurveNode, $numCVs);
-      if (!`size $pointFlag`) return $command;
-
-      $lines[`size $lines`] = "string $tt" + $i + " = `curve -d " + $d + " -os" + $perFlag + $kFlag + $pointFlag + "`;";
-    }
+    $lines[`size $lines`] = "string $tt" + $i + " = `curve -os" + $dFlag + $perFlag + $kFlag + $pointFlag + "`;";
     // ss:shapes
     $lines[`size $lines`] = "string $ss" + $i + "[] = `listRelatives -f -s -typ \"nurbsCurve\" $tt" + $i + "`;";
     // n:nurbsCurve
     $lines[`size $lines`] = "string $nc" + $i + " = $ss" + $i + "[0];";
 
-    if ($f == 1) {
-      $lines[`size $lines`] = "closeCurve -ch 0 -ps 1 -rpo 1 $nc" + $i + ";";
-    }
+    // if ($debug) $lines[`size $lines`] = "";
+
+    // for ($j = 0; $j < $numCVs; $j++) {
+    //   float $cp[] = `getAttr ($sourceCurveNode + ".cp[" + $j + "]")`;
+    //   $lines[`size $lines`] = "setAttr ($nc" + $i + " + \".cp[" + $j + "]\") -typ \"double3\" " + floatArrayToString($cp, " ") + ";";
+    // }
 
     if ($debug) $lines[`size $lines`] = "";
 
@@ -679,7 +660,7 @@ proc lockButtonPressed() {
 */
 proc curve1ButtonPressed() {
   // print("curve1ButtonPressed\n"); // debug
-  {string $t = `group -em -n "bundleCurve1"`; addAttr -at "double3" -k 0 -ln "shapeTranslate" -sn "st" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateX" -sn "stx" -p "shapeTranslate" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateY" -sn "sty" -p "shapeTranslate" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateZ" -sn "stz" -p "shapeTranslate" $t; addAttr -at "double3" -k 0 -ln "shapeRotate" -sn "sr" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateX" -sn "srx" -p "shapeRotate" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateY" -sn "sry" -p "shapeRotate" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateZ" -sn "srz" -p "shapeRotate" $t; addAttr -at "double3" -k 0 -ln "shapeScale" -sn "ss" $t; addAttr -at "double" -k 0 -ln "shapeScaleX" -sn "ssx" -p "shapeScale" $t; addAttr -at "double" -k 0 -ln "shapeScaleY" -sn "ssy" -p "shapeScale" $t; addAttr -at "double" -k 0 -ln "shapeScaleZ" -sn "ssz" -p "shapeScale" $t; setAttr ($t + ".ss") -typ "double3" 1.0 1.0 1.0; setAttr -l 1 ($t + ".stx"); setAttr -l 1 ($t + ".sty"); setAttr -l 1 ($t + ".stz"); setAttr -l 1 ($t + ".srx"); setAttr -l 1 ($t + ".sry"); setAttr -l 1 ($t + ".srz"); setAttr -l 1 ($t + ".ssx"); setAttr -l 1 ($t + ".ssy"); setAttr -l 1 ($t + ".ssz"); string $ns[]; string $ds[]; string $tt0 = `curve -d 1 -os -ep -0.1736482978 0 0.9848074913 -ep 0 0 1.2 -ep 0.1736479998 0 0.9848075509`; string $ss0[] = `listRelatives -f -s -typ "nurbsCurve" $tt0`; string $nc0 = $ss0[0]; $ns[`size $ns`] = $nc0; $ds[`size $ds`] = $tt0; addAttr -dt "nurbsCurve" -k 0 -ln "sourceCurve" -sn "sc" $nc0; setAttr ($nc0 + ".sc") -typ "nurbsCurve" 1 2 0 0 3 3 0 1 2 3 -0.1736482978 0 0.9848074913 0 0 1.2 0.1736479998 0 0.9848075509; string $tt1 = `curve -d 3 -os -ep 0.1736481754 -6.026825781e-17 0.9842553437 -ep 0.7071067812 -4.329780281e-17 0.7071067812 -ep 1 -3.081487911e-33 8.326672685e-17 -ep 0.7071067812 4.329780281e-17 -0.7071067812 -ep 8.326672685e-17 6.123233996e-17 -1 -ep -0.7071067812 4.329780281e-17 -0.7071067812 -ep -1 4.622231867e-33 -8.326672685e-17 -ep -0.7071067812 -4.329780281e-17 0.7071067812 -ep -0.173648095 -6.02682587e-17 0.9842553582`; string $ss1[] = `listRelatives -f -s -typ "nurbsCurve" $tt1`; string $nc1 = $ss1[0]; $ns[`size $ns`] = $nc1; $ds[`size $ds`] = $tt1; addAttr -dt "nurbsCurve" -k 0 -ln "sourceCurve" -sn "sc" $nc1; setAttr ($nc1 + ".sc") -typ "nurbsCurve" 3 8 0 0 3 13 4.222677795 4.222677795 4.222677795 5 6 7 8 9 10 11 11.77732231 11.77732231 11.77732231 11 0.1736481754 -6.026825781e-17 0.9842553437 0.3737389575 -5.804958031e-17 0.9480215905 0.807704068 -4.442083704e-17 0.725447322 1.108194188 -9.25367921e-33 1.511240501e-16 0.7836116249 4.798237341e-17 -0.7836116249 6.785732323e-17 6.785732323e-17 -1.108194188 -0.7836116249 4.798237341e-17 -0.7836116249 -1.108194188 3.517735619e-33 -5.744898238e-17 -0.8077040568 -4.44208387e-17 0.7254473491 -0.3737389067 -5.804958191e-17 0.9480216165 -0.173648095 -6.02682587e-17 0.9842553582; parent -r -s $ns $t; string $bss[] = `listRelatives -f -s -typ "nurbsCurve" $t`; for ($i = 0; $i < `size $bss`; $i++) { string $bn = $bss[$i]; rename $bn ($t + "Shape" + ($i + 1)); } if (`size $ds`) delete $ds;}
+  {string $t = `group -em -n "bundleCurve1"`; addAttr -at "double3" -k 0 -ln "shapeTranslate" -sn "st" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateX" -sn "stx" -p "shapeTranslate" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateY" -sn "sty" -p "shapeTranslate" $t; addAttr -at "doubleLinear" -k 0 -ln "shapeTranslateZ" -sn "stz" -p "shapeTranslate" $t; addAttr -at "double3" -k 0 -ln "shapeRotate" -sn "sr" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateX" -sn "srx" -p "shapeRotate" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateY" -sn "sry" -p "shapeRotate" $t; addAttr -at "doubleAngle" -k 0 -ln "shapeRotateZ" -sn "srz" -p "shapeRotate" $t; addAttr -at "double3" -k 0 -ln "shapeScale" -sn "ss" $t; addAttr -at "double" -k 0 -ln "shapeScaleX" -sn "ssx" -p "shapeScale" $t; addAttr -at "double" -k 0 -ln "shapeScaleY" -sn "ssy" -p "shapeScale" $t; addAttr -at "double" -k 0 -ln "shapeScaleZ" -sn "ssz" -p "shapeScale" $t; setAttr ($t + ".ss") -typ "double3" 1.0 1.0 1.0; setAttr -l 1 ($t + ".stx"); setAttr -l 1 ($t + ".sty"); setAttr -l 1 ($t + ".stz"); setAttr -l 1 ($t + ".srx"); setAttr -l 1 ($t + ".sry"); setAttr -l 1 ($t + ".srz"); setAttr -l 1 ($t + ".ssx"); setAttr -l 1 ($t + ".ssy"); setAttr -l 1 ($t + ".ssz"); string $ns[]; string $ds[]; string $tt0 = `curve -os -d 3 -per 0 -k 4.222677797 -k 4.222677797 -k 4.222677797 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 11.77732231 -k 11.77732231 -k 11.77732231 -k 12.77732231 -k 12.77732231 -k 12.77732231 -k 13.77732231 -k 13.77732231 -k 13.77732231 -p 0.1736481769 0 0.9842553434 -p 0.3737389585 0 0.94802159 -p 0.8077040682 0 0.7254473214 -p 1.108194188 0 -1.103370867e-14 -p 0.7836116249 0 -0.7836116249 -p 1.097967203e-13 0 -1.108194188 -p -0.7836116249 0 -0.7836116249 -p -1.108194188 0 -2.348671079e-12 -p -0.8077040565 0 0.7254473497 -p -0.3737389057 0 0.948021617 -p -0.1736480935 0 0.9842553585 -p -0.1157655319 0 1.056538328 -p -0.05788276593 0 1.128269164 -p 0 0 1.2 -p 0.05788266659 0 1.128269184 -p 0.1157653332 0 1.056538367 -p 0.1736479998 0 0.9848075509`; string $ss0[] = `listRelatives -f -s -typ "nurbsCurve" $tt0`; string $nc0 = $ss0[0]; $ns[`size $ns`] = $nc0; $ds[`size $ds`] = $tt0; addAttr -dt "nurbsCurve" -k 0 -ln "sourceCurve" -sn "sc" $nc0; setAttr ($nc0 + ".sc") -typ "nurbsCurve" 3 14 0 0 3 19 4.222677797 4.222677797 4.222677797 5 6 7 8 9 10 11 11.77732231 11.77732231 11.77732231 12.77732231 12.77732231 12.77732231 13.77732231 13.77732231 13.77732231 17 0.1736481769 0 0.9842553434 0.3737389585 0 0.94802159 0.8077040682 0 0.7254473214 1.108194188 0 -1.103370867e-14 0.7836116249 0 -0.7836116249 1.097967203e-13 0 -1.108194188 -0.7836116249 0 -0.7836116249 -1.108194188 0 -2.348671079e-12 -0.8077040565 0 0.7254473497 -0.3737389057 0 0.948021617 -0.1736480935 0 0.9842553585 -0.1157655319 0 1.056538328 -0.05788276593 0 1.128269164 0 0 1.2 0.05788266659 0 1.128269184 0.1157653332 0 1.056538367 0.1736479998 0 0.9848075509; parent -r -s $ns $t; string $bss[] = `listRelatives -f -s -typ "nurbsCurve" $t`; for ($i = 0; $i < `size $bss`; $i++) { string $bn = $bss[$i]; rename $bn ($t + "Shape" + ($i + 1)); } if (`size $ds`) delete $ds;}
 }
 
 /*-
@@ -869,7 +850,7 @@ global proc nkRigControllerEventController(
 @returns <string>
 */
 global proc string nkRigControllerVersion() {
-  return "0.1.0";
+  return "0.1.1";
 }
 
 /*-
