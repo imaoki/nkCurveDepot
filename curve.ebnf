@@ -1,0 +1,31 @@
+      curve = { nurbs_curve , "\n" }+ ;
+
+nurbs_curve = degree
+            , "," , spans
+            , "," , form
+            , "," , is_rational
+            , "," , dimention
+            , "/" , knot_values
+            , "/" , cv_values ;
+
+     degree = integer ;
+
+      spans = integer ;
+
+       form = integer ;
+
+is_rational = boolean ;
+
+  dimention = integer ;
+
+knot_values = knot_value { "," , knot_value } ;
+
+ knot_value = number ;
+
+  cv_values = cv_value , { ";" , cv_value }+ ;
+
+   cv_value = number , "," , number , "," number ;
+
+    boolean = "0" | "1" ;
+
+     number = [ "-" ] , ( integer | real ) ;
