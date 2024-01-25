@@ -58,6 +58,8 @@ nkCurveDepot;
 
 03. リストに追加されたカーブ定義を選択して![Create Curve](resource/createNode.png "Create Curve")ボタンでカーブノードを作成。
 
+    カーブ定義をダブルクリックでも作成できます。
+
 ## カーブシェイプのローカル変換
 
 ![shape-transform](resource/shape-transform.gif "shape-transform")
