@@ -1,3 +1,4 @@
+(*! © 2023 imaoki | MIT License | https://github.com/imaoki *)
       curve = { nurbs_curve , "\n" }+ ;
 
 nurbs_curve = degree
