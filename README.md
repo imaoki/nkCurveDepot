@@ -60,6 +60,10 @@ nkCurveDepot;
 
     カーブ定義をダブルクリックでも作成できます。
 
+### 注意点
+
+* 処理の都合上、元のカーブノードのヒストリは削除されます。
+
 ## カーブシェイプのローカル変換
 
 ![shape-transform](resource/shape-transform.gif "shape-transform")
