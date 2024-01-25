@@ -368,7 +368,7 @@ proc string deserializeCurve(string $curveText) {
 @returns <string>
 */
 proc string getCurveDirname() {
-  return (getSourceDirname("nkRigController") + "/nkRigControllerCurves");
+  return (getSourceDirname("nkCurveDepot") + "/nkCurveDepotCurves");
 }
 
 /*-
@@ -948,7 +948,7 @@ proc string makeCurveName(string $initCurveName) {
 @returns <int>
 */
 proc int getCurveListSelectedIndex() {
-  string $curveList = getUIControl("nkRigControllerWindow", "curveList");
+  string $curveList = getUIControl("nkCurveDepotWindow", "curveList");
   return (qFirstIndex("textScrollList", "-sii", $curveList));
 }
 
@@ -956,7 +956,7 @@ proc int getCurveListSelectedIndex() {
 @returns <string>
 */
 proc string getCurveListSelectedItem() {
-  string $curveList = getUIControl("nkRigControllerWindow", "curveList");
+  string $curveList = getUIControl("nkCurveDepotWindow", "curveList");
   return (qFirstString("textScrollList", "-si", $curveList));
 }
 
@@ -965,7 +965,7 @@ proc string getCurveListSelectedItem() {
 @returns <>
 */
 proc selectCurveListByIndex(int $index) {
-  string $curveList = getUIControl("nkRigControllerWindow", "curveList");
+  string $curveList = getUIControl("nkCurveDepotWindow", "curveList");
   executeUIControl("textScrollList", "-da", $curveList);
   int $numItems = qInt("textScrollList", "-ni", $curveList);
   if (!isInRangeInt($index, 0, $numItems - 1)) return;
@@ -978,7 +978,7 @@ proc selectCurveListByIndex(int $index) {
 */
 proc selectCurveListByItem(string $item) {
   if (!`size $item`) return;
-  string $curveList = getUIControl("nkRigControllerWindow", "curveList");
+  string $curveList = getUIControl("nkCurveDepotWindow", "curveList");
   executeUIControl("textScrollList", "-da", $curveList);
   int $numItems = qInt("textScrollList", "-ni", $curveList);
   if (!$numItems) return;
@@ -1006,7 +1006,7 @@ proc updateCurveList(string $stateOfSelection) {
   // print("  lastIndex:" + $lastIndex + "\n"); // debug
   // print("  lastItem :" + $lastItem + "\n"); // debug
 
-  string $curveList = getUIControl("nkRigControllerWindow", "curveList");
+  string $curveList = getUIControl("nkCurveDepotWindow", "curveList");
   executeUIControl("textScrollList", "-ra", $curveList);
 
   string $curveOrder[] = readCurveOrder();
@@ -1032,10 +1032,10 @@ proc updateCurveList(string $stateOfSelection) {
 /*-
 @returns <>
 */
-proc nkRigControllerWindowClosed() {
-  // print("nkRigControllerWindowClosed\n"); // debug
+proc nkCurveDepotWindowClosed() {
+  // print("nkCurveDepotWindowClosed\n"); // debug
   unsubscribePosesObservers();
-  removeUIControls("nkRigControllerWindow", "");
+  removeUIControls("nkCurveDepotWindow", "");
 }
 
 /*-
@@ -1043,10 +1043,10 @@ proc nkRigControllerWindowClosed() {
 */
 proc resetWindowMenuItemSelected() {
   // print("resetWindowMenuItemSelected\n"); // debug
-  string $nkRigControllerWindow = getUIControl("nkRigControllerWindow", "nkRigControllerWindow");
-  // print("  nkRigControllerWindow:" + $nkRigControllerWindow + "\n"); // debug
-  windowPrefRemove("window", $nkRigControllerWindow);
-  nkRigController();
+  string $nkCurveDepotWindow = getUIControl("nkCurveDepotWindow", "nkCurveDepotWindow");
+  // print("  nkCurveDepotWindow:" + $nkCurveDepotWindow + "\n"); // debug
+  windowPrefRemove("window", $nkCurveDepotWindow);
+  nkCurveDepot();
 }
 
 /*-
@@ -1054,9 +1054,9 @@ proc resetWindowMenuItemSelected() {
 */
 proc quitMenuItemSelected() {
   // print("quitMenuItemSelected\n"); // debug
-  string $nkRigControllerWindow = getUIControl("nkRigControllerWindow", "nkRigControllerWindow");
-  // print("  nkRigControllerWindow:" + $nkRigControllerWindow + "\n"); // debug
-  windowClose($nkRigControllerWindow);
+  string $nkCurveDepotWindow = getUIControl("nkCurveDepotWindow", "nkCurveDepotWindow");
+  // print("  nkCurveDepotWindow:" + $nkCurveDepotWindow + "\n"); // debug
+  windowClose($nkCurveDepotWindow);
 }
 
 /*-
@@ -1068,11 +1068,11 @@ proc aboutMenuItemSelected() {
       -b "OK"
       -db "OK"
       -m (
-        "nkRigController " + (nkRigControllerVersion())
-            + "\n\nMIT License\nhttps://github.com/imaoki/nkRigController"
+        "nkCurveDepot " + (nkCurveDepotVersion())
+            + "\n\nMIT License\nhttps://github.com/imaoki/nkCurveDepot"
       )
-      -p (getParentableWindow("nkRigControllerWindow"))
-      -t "About - nkRigController";
+      -p (getParentableWindow("nkCurveDepotWindow"))
+      -t "About - nkCurveDepot";
 }
 
 /*-
@@ -1297,7 +1297,7 @@ proc deleteButtonPressed() {
   string $result = `confirmDialog
       -b "OK" -db "OK"
       -b "Cancel"-cb "Cancel"
-      -m "Are you sure?\n\nDeleted curves are moved to nkRigControllerCurves/trash."
+      -m "Are you sure?\n\nDeleted curves are moved to nkCurveDepotCurves/trash."
       -t "Delete Curve"`;
   if ($result != "OK") return;
 
@@ -1340,14 +1340,14 @@ proc sortButtonPressed() {
 */
 proc buildMainWindow() {
   // print("buildMainWindow\n"); // debug
-  windowClose("nkRigControllerWindow");
+  windowClose("nkCurveDepotWindow");
 
-  string $nkRigControllerWindow = `window
+  string $nkCurveDepotWindow = `window
       -mxb false
       -mnb false
       -s true
-      -t "nkRigController"
-      "nkRigControllerWindow"`;
+      -t "nkCurveDepot"
+      "nkCurveDepotWindow"`;
     string $outerForm = `formLayout "outerForm"`;
       string $menuBar = `menuBarLayout
           // -bgc 0.25 0.5 0.25
@@ -1367,7 +1367,7 @@ proc buildMainWindow() {
             -l "Help"
             "helpMenu"`;
           string $aboutMenuItem = `menuItem
-              -l "About nkRigController"
+              -l "About nkCurveDepot"
               "aboutMenuItem"`;
       setParent ..;
 
@@ -1502,41 +1502,41 @@ proc buildMainWindow() {
 
       $outerForm;
 
-  window -e -cc "nkRigControllerEventController(\"nkRigControllerWindow\", \"cc\", \"nkRigControllerWindow\");" $nkRigControllerWindow;
-  menuItem -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"resetWindowMenuItem\");" $resetWindowMenuItem;
-  menuItem -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"quitMenuItem\");" $quitMenuItem;
-  menuItem -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"aboutMenuItem\");" $aboutMenuItem;
+  window -e -cc "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"cc\", \"nkCurveDepotWindow\");" $nkCurveDepotWindow;
+  menuItem -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"resetWindowMenuItem\");" $resetWindowMenuItem;
+  menuItem -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"quitMenuItem\");" $quitMenuItem;
+  menuItem -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"aboutMenuItem\");" $aboutMenuItem;
 
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve1Button\");" $curve1Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve2Button\");" $curve2Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve3Button\");" $curve3Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve4Button\");" $curve4Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve5Button\");" $curve5Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve6Button\");" $curve6Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve7Button\");" $curve7Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve8Button\");" $curve8Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve9Button\");" $curve9Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve10Button\");" $curve10Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve11Button\");" $curve11Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve12Button\");" $curve12Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve13Button\");" $curve13Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve14Button\");" $curve14Button;
-  // button -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"curve15Button\");" $curve15Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve1Button\");" $curve1Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve2Button\");" $curve2Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve3Button\");" $curve3Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve4Button\");" $curve4Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve5Button\");" $curve5Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve6Button\");" $curve6Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve7Button\");" $curve7Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve8Button\");" $curve8Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve9Button\");" $curve9Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve10Button\");" $curve10Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve11Button\");" $curve11Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve12Button\");" $curve12Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve13Button\");" $curve13Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve14Button\");" $curve14Button;
+  // button -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"curve15Button\");" $curve15Button;
 
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"addButton\");" $addButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"renameButton\");" $renameButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"createButton\");" $createButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"unlockButton\");" $unlockButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"lockButton\");" $lockButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"replaceButton\");" $replaceButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"deleteButton\");" $deleteButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"moveUpButton\");" $moveUpButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"moveDownButton\");" $moveDownButton;
-  iconTextButton -e -c "nkRigControllerEventController(\"nkRigControllerWindow\", \"c\", \"sortButton\");" $sortButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"addButton\");" $addButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"renameButton\");" $renameButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"createButton\");" $createButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"unlockButton\");" $unlockButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"lockButton\");" $lockButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"replaceButton\");" $replaceButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"deleteButton\");" $deleteButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"moveUpButton\");" $moveUpButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"moveDownButton\");" $moveDownButton;
+  iconTextButton -e -c "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"c\", \"sortButton\");" $sortButton;
 
-  textScrollList -e -dcc "nkRigControllerEventController(\"nkRigControllerWindow\", \"dcc\", \"curveList\");" $curveList;
+  textScrollList -e -dcc "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"dcc\", \"curveList\");" $curveList;
 
-  // print("  " + $nkRigControllerWindow + "\n"); // debug
+  // print("  " + $nkCurveDepotWindow + "\n"); // debug
   // print("  " + $outerForm + "\n"); // debug
   // print("  " + $menuBar + "\n"); // debug
   // print("  " + $fileMenu + "\n"); // debug
@@ -1579,12 +1579,12 @@ proc buildMainWindow() {
   // print("  " + $sortButton + "\n"); // debug
 
   appendUIControls({
-    $nkRigControllerWindow,
+    $nkCurveDepotWindow,
     $curveList
   });
 
   updateCurveList("none");
-  showWindow $nkRigControllerWindow;
+  showWindow $nkCurveDepotWindow;
 }
 
 // -----------------------------------------------------------------------------
@@ -1596,17 +1596,17 @@ proc buildMainWindow() {
 @param $control <string>
 @returns <>
 */
-global proc nkRigControllerEventController(
+global proc nkCurveDepotEventController(
   string $window,
   string $event,
   string $control
 ) {
-  // print("nkRigControllerEventController\n"); // debug
+  // print("nkCurveDepotEventController\n"); // debug
   // print("  window :" + $window + "\n"); // debug
   // print("  event  :" + $event + "\n"); // debug
   // print("  control:" + $control + "\n"); // debug
   switch ($window) {
-    case "nkRigControllerWindow":
+    case "nkCurveDepotWindow":
       switch ($event) {
         case "c":
           switch ($control) {
@@ -1670,20 +1670,20 @@ global proc nkRigControllerEventController(
 /*-
 @returns <string>
 */
-global proc string nkRigControllerVersion() {
+global proc string nkCurveDepotVersion() {
   return "0.2.0";
 }
 
 /*-
 @returns <>
 */
-global proc nkRigController() {
+global proc nkCurveDepot() {
   buildMainWindow();
 }
 
 /*
-eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkRigController/nkRigController.mel\"");
-nkRigController;
+eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepot.mel\"");
+nkCurveDepot;
 */
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -2039,7 +2039,7 @@ proc test1() {
 @remarks カーブリスト。
 */
 proc test2() {
-  string $curveDirname = `getenv "MAYA_APP_DIR"` + "/dev/nkRigController/nkRigControllerCurves";
+  string $curveDirname = `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepotCurves";
   string $trashDirname = $curveDirname + "/trash";
   string $curveOrderFilename = $curveDirname + "/order.txt";
 
@@ -2321,7 +2321,7 @@ proc test2() {
 @remarks カーブ操作。
 */
 proc test3() {
-  string $curveDirname = `getenv "MAYA_APP_DIR"` + "/dev/nkRigController/nkRigControllerCurves";
+  string $curveDirname = `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepotCurves";
   string $curveOrderFilename = $curveDirname + "/order.txt";
 
   int $existsOrderFile = existsFilename($curveOrderFilename);
@@ -2514,7 +2514,7 @@ proc test3() {
 @param $flags <boolean[]>
 @returns <>
 */
-global proc nkRigControllerTest(int $flags[]) {
+global proc nkCurveDepotTest(int $flags[]) {
   if ($flags[0]) test0();
   if ($flags[1]) test1();
   if ($flags[2]) test2();
@@ -2522,6 +2522,6 @@ global proc nkRigControllerTest(int $flags[]) {
 }
 
 /*
-eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkRigController/nkRigController.mel\"");
-nkRigControllerTest({1, 1, 1, 1});
+eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepot.mel\"");
+nkCurveDepotTest({1, 1, 1, 1});
 */

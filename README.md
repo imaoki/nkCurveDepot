@@ -1,6 +1,6 @@
-# nkRigController
+# nkCurveDepot
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/imaoki/nkRigController)](https://github.com/imaoki/nkRigController/releases/latest)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/imaoki/nkCurveDepot)](https://github.com/imaoki/nkCurveDepot/releases/latest)
 
 リグ用コントローラを作成するツール。
 
@@ -24,7 +24,7 @@ Maya 2022.5 / Windows 10
 
 ## インストール
 
-01. `nkRigController.mel`をスクリプトディレクトリにコピー
+01. `nkCurveDepot.mel`をスクリプトディレクトリにコピー
 
     | バージョン | ディレクトリ                             |
     | ---------- | ---------------------------------------- |
@@ -36,7 +36,7 @@ Maya 2022.5 / Windows 10
 ## 起動方法
 
 ```mel
-nkRigController;
+nkCurveDepot;
 ```
 
 ## メインウィンドウ
@@ -103,6 +103,6 @@ nkRigController;
 
 ## 補足事項
 
-* ![Delete Curve](resource/item_delete.png "Delete Curve")ボタンで削除したカーブ定義は`nkRigControllerCurves/trash`フォルダに上書き移動されます。
+* ![Delete Curve](resource/item_delete.png "Delete Curve")ボタンで削除したカーブ定義は`nkCurveDepotCurves/trash`フォルダに上書き移動されます。
 
   残しておきたいカーブ定義は適宜`.curve`ファイルをバックアップしてください。
