@@ -86,7 +86,7 @@ nkCurveDepot;
 
 03. ![Replace Curve](resource/bufferSnap.png "Replace Curve")ボタンで置き換え。
 
-04. 実行後にオフセットが反映されていない場合は![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform")/![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform")ボタンを使用して更新してください。
+04. 実行後にピボットのオフセットが反映されていない場合は![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform")/![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform")ボタンを使用して更新してください。
 
 ### 注意点
 
