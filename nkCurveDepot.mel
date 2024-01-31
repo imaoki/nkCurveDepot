@@ -460,7 +460,7 @@ proc string escapeCurveName(string $curveName) {
 @returns <string>
 */
 proc string makeCurveFilename(string $curveName) {
-  return (getCurveDirname() + "/" + $curveName + ".curve");
+  return (getCurveDirname() + "/" + $curveName + ".curvedepot");
 }
 
 /*-
@@ -468,7 +468,7 @@ proc string makeCurveFilename(string $curveName) {
 @returns <string>
 */
 proc string makeTrashFilename(string $curveName) {
-  return (getTrashDirname() + "/" + $curveName + ".curve");
+  return (getTrashDirname() + "/" + $curveName + ".curvedepot");
 }
 
 /*-
@@ -1675,7 +1675,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.1";
+  return "1.0.2";
 }
 
 /*-
@@ -2132,10 +2132,10 @@ proc test2() {
   $r = assertStringEqual("a b", escapeCurveName("a\tb")); if (`size $r`) warning $r;
 
   // makeCurveFilename
-  $r = assertStringEqual($curveDirname + "/a.curve", makeCurveFilename("a")); if (`size $r`) warning $r;
+  $r = assertStringEqual($curveDirname + "/a.curvedepot", makeCurveFilename("a")); if (`size $r`) warning $r;
 
   // makeTrashFilename
-  $r = assertStringEqual($trashDirname + "/a.curve", makeTrashFilename("a")); if (`size $r`) warning $r;
+  $r = assertStringEqual($trashDirname + "/a.curvedepot", makeTrashFilename("a")); if (`size $r`) warning $r;
 
   // addCurve
   {
@@ -2150,10 +2150,10 @@ proc test2() {
     string $ncy = $tyShapeNodes[0];
     string $ncz = $tzShapeNodes[0];
 
-    string $xCurveFilename = $curveDirname + "/x.curve";
-    string $yCurveFilename = $curveDirname + "/y.curve";
-    string $zCurveFilename = $curveDirname + "/z.curve";
-    string $xyzCurveFilename = $curveDirname + "/x y z.curve";
+    string $xCurveFilename = $curveDirname + "/x.curvedepot";
+    string $yCurveFilename = $curveDirname + "/y.curvedepot";
+    string $zCurveFilename = $curveDirname + "/z.curvedepot";
+    string $xyzCurveFilename = $curveDirname + "/x y z.curvedepot";
 
     $r = assertFalse(existsFilename($curveOrderFilename)); if (`size $r`) warning $r;
     $r = assertFalse(existsFilename($xCurveFilename)); if (`size $r`) warning $r;
@@ -2201,12 +2201,12 @@ proc test2() {
 
   // deleteCurve
   {
-    string $xCurveFilename = $curveDirname + "/x.curve";
-    string $yCurveFilename = $curveDirname + "/y.curve";
-    string $zCurveFilename = $curveDirname + "/z.curve";
-    string $xTrashFilename = $trashDirname + "/x.curve";
-    string $yTrashFilename = $trashDirname + "/y.curve";
-    string $zTrashFilename = $trashDirname + "/z.curve";
+    string $xCurveFilename = $curveDirname + "/x.curvedepot";
+    string $yCurveFilename = $curveDirname + "/y.curvedepot";
+    string $zCurveFilename = $curveDirname + "/z.curvedepot";
+    string $xTrashFilename = $trashDirname + "/x.curvedepot";
+    string $yTrashFilename = $trashDirname + "/y.curvedepot";
+    string $zTrashFilename = $trashDirname + "/z.curvedepot";
 
     $r = assertTrue(writeAllText($curveOrderFilename, "", "x\ny\nz\n")); if (`size $r`) warning $r;
     $r = assertTrue(writeAllText($xCurveFilename, "", "")); if (`size $r`) warning $r;
@@ -2264,10 +2264,10 @@ proc test2() {
 
   // renameCurve
   {
-    string $xCurveFilename = $curveDirname + "/x.curve";
-    string $yCurveFilename = $curveDirname + "/y.curve";
-    string $zCurveFilename = $curveDirname + "/z.curve";
-    string $xyzCurveFilename = $curveDirname + "/x y z.curve";
+    string $xCurveFilename = $curveDirname + "/x.curvedepot";
+    string $yCurveFilename = $curveDirname + "/y.curvedepot";
+    string $zCurveFilename = $curveDirname + "/z.curvedepot";
+    string $xyzCurveFilename = $curveDirname + "/x y z.curvedepot";
 
     $r = assertTrue(writeAllText($curveOrderFilename, "", "x\ny\nz\n")); if (`size $r`) warning $r;
     $r = assertTrue(writeAllText($xCurveFilename, "", "")); if (`size $r`) warning $r;
@@ -2344,7 +2344,7 @@ proc test3() {
 
   // createCurve
   {
-    string $xyzCurveFilename = $curveDirname + "/xyz.curve";
+    string $xyzCurveFilename = $curveDirname + "/xyz.curvedepot";
 
     $r = assertFalse(existsFilename($curveOrderFilename)); if (`size $r`) warning $r;
     $r = assertFalse(existsFilename($xyzCurveFilename)); if (`size $r`) warning $r;
