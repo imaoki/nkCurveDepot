@@ -4,6 +4,7 @@ Cube
 Cylinder
 Cylinder(Half)
 Diamond
+Frustum(Square)
 Gear
 Octahedron
 Pyramid(Diamond)
