@@ -1,7 +1,9 @@
 (*! © 2023 imaoki | MIT License | https://github.com/imaoki *)
-      curve = { nurbs_curve , "\n" }+ ;
+       file = curves ;
 
-nurbs_curve = degree
+     curves = { curve , "\n" }+ ;
+
+      curve = degree
             , "," , spans
             , "," , form
             , "," , is_rational
