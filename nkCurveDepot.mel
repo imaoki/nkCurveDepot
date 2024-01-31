@@ -193,9 +193,11 @@ proc string[] renameCurveNodes(string $n) {
   string $newCurveNodes[];
   if (!(`objExists $n` && `nodeType $n` == "transform")) return $newCurveNodes;
 
+  string $baseName = shortNameOf($n);
   string $lastCurveNodes[] = collectCurveNodes($n, false);
   for ($i = 0; $i < `size $lastCurveNodes`; $i++) {
-    $newCurveNodes[$i] = `rename $lastCurveNodes[$i] ($n + "Shape" + ($i + 1))`;
+    string $shapeName = $baseName + "Shape" + ($i + 1);
+    $newCurveNodes[$i] = `rename $lastCurveNodes[$i] $shapeName`;
   }
   return $newCurveNodes;
 }
@@ -635,6 +637,7 @@ proc string createCurve(string $curveName) {
     renameCurveNodes($n);
   }
   if (`size $deletableNodes` > 0) delete $deletableNodes;
+  select -r $n;
   return $n;
 }
 
@@ -908,6 +911,7 @@ proc string[] replaceCurves(string $nodes[]) {
   refresh;
 
   if (`objExists $sourceNode`) delete $sourceNode;
+  select -r $targetNode;
   return $newNodes;
 }
 
@@ -1671,7 +1675,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.0";
+  return "1.0.1";
 }
 
 /*-
@@ -1909,7 +1913,10 @@ proc test0() {
     string $tyShapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $ty`;
     string $tzShapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $tz`;
     string $ncs[] = {$txShapeNodes[0], $tyShapeNodes[0], $tzShapeNodes[0]};
-    string $t = `createNode -ss "transform"`;
+    string $p = longNameOf(`createNode -ss "transform"`);
+    string $t = longNameOf(`createNode -p $p -ss "transform"`);
+    string $newShapeNodes[] = {"Shape1", "Shape2", "Shape3"};
+    stringArrayAddPrefix($newShapeNodes, shortNameOf($t));
 
     $r = assertTrue(`objExists $ncs[0]`); if (`size $r`) warning $r;
     $r = assertTrue(`objExists $ncs[1]`); if (`size $r`) warning $r;
@@ -1921,7 +1928,7 @@ proc test0() {
     $r = assertFalse(`objExists $ncs[2]`); if (`size $r`) warning $r;
 
     $ncs = renameCurveNodes($t);
-    $r = assertStringArrayEqual({$t + "Shape1", $t + "Shape2", $t + "Shape3"}, $ncs); if (`size $r`) warning $r;
+    $r = assertStringArrayEqual($newShapeNodes, $ncs); if (`size $r`) warning $r;
     $r = assertTrue(`objExists $ncs[0]`); if (`size $r`) warning $r;
     $r = assertTrue(`objExists $ncs[1]`); if (`size $r`) warning $r;
     $r = assertTrue(`objExists $ncs[2]`); if (`size $r`) warning $r;
@@ -1930,6 +1937,7 @@ proc test0() {
     if (`objExists $ty`) delete $ty;
     if (`objExists $tz`) delete $tz;
     if (`objExists $t`) delete $t;
+    if (`objExists $p`) delete $p;
   }
 
   // deleteNodes
