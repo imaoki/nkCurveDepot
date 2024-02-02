@@ -304,7 +304,7 @@ proc string deserializeCurve(string $curveText) {
 
   $createFlags += " -d " + $params[0];
   $createFlags += " -os";
-  $createFlags += ($params[2] == "0") ? " -per 0" : " -per 1";
+  $createFlags += ($params[2] == "2") ? " -per 1" : " -per 0";
   for ($i = 0; $i < $numParams; $i++) {
     $sourceCurveValue += " " + $params[$i];
   }
@@ -345,6 +345,7 @@ proc string deserializeCurve(string $curveText) {
   string $createCommand = "curve" + $createFlags;
   // print("  createCommand :" + $createCommand + "\n"); // debug
   $n = `eval $createCommand`;
+  // print("  n:" + $n + "\n"); // debug
 
   if (`objExists $n` && `nodeType $n` == "transform") {
     string $curveNodes[] = collectCurveNodes($n, false);
@@ -1675,7 +1676,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.2";
+  return "1.0.3";
 }
 
 /*-
@@ -2009,7 +2010,7 @@ proc test1() {
 
   // deserializeCurve
   {
-    string $curveText = "1,1,0,0,3/0,1/0,0,0;1,0,0";
+    string $curveText1 = "1,1,0,0,3/0,1/0,0,0;1,0,0";
 
     $r = assertStringEqual("", deserializeCurve("")); if (`size $r`) warning $r;
     $r = assertStringEqual("", deserializeCurve("1")); if (`size $r`) warning $r;
@@ -2021,22 +2022,41 @@ proc test1() {
     $r = assertStringEqual("", deserializeCurve("1,1,1,1,1/2/3")); if (`size $r`) warning $r;
     $r = assertStringEqual("", deserializeCurve("1,1,1,1,1/2/3,3;3,3")); if (`size $r`) warning $r;
 
-    string $t = deserializeCurve($curveText);
-    $r = assertTrue(`objExists $t`); if (`size $r`) warning $r;
-    $r = assertStringEqual("transform", `nodeType $t`); if (`size $r`) warning $r;
-    string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $t`;
-    $r = assertIntEqual(1, `size $shapeNodes`); if (`size $r`) warning $r;
-    string $nc = $shapeNodes[0];
-    $r = assertTrue(`objExists $nc`); if (`size $r`) warning $r;
-    $r = assertStringEqual("nurbsCurve", `nodeType $nc`); if (`size $r`) warning $r;
-    $r = assertTrue(`attributeQuery -n $nc -ex "sourceCurve"`); if (`size $r`) warning $r;
-    $r = assertStringEqual("nurbsCurve", `getAttr -typ ($nc + ".sourceCurve")`); if (`size $r`) warning $r;
-    $r = assertIntEqual(1, `getAttr ($nc + ".d")`); if (`size $r`) warning $r;
-    $r = assertIntEqual(1, `getAttr ($nc + ".s")`); if (`size $r`) warning $r;
-    $r = assertIntEqual(0, `getAttr ($nc + ".f")`); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 1.0, 0.0, 0.0}, `getAttr ($nc + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
+    string $t1 = deserializeCurve($curveText1);
+    $r = assertTrue(`objExists $t1`); if (`size $r`) warning $r;
+    $r = assertStringEqual("transform", `nodeType $t1`); if (`size $r`) warning $r;
+    string $shapeNodes1[] = `listRelatives -f -s -typ "nurbsCurve" $t1`;
+    $r = assertIntEqual(1, `size $shapeNodes1`); if (`size $r`) warning $r;
+    string $nc1 = $shapeNodes1[0];
+    $r = assertTrue(`objExists $nc1`); if (`size $r`) warning $r;
+    $r = assertStringEqual("nurbsCurve", `nodeType $nc1`); if (`size $r`) warning $r;
+    $r = assertTrue(`attributeQuery -n $nc1 -ex "sourceCurve"`); if (`size $r`) warning $r;
+    $r = assertStringEqual("nurbsCurve", `getAttr -typ ($nc1 + ".sourceCurve")`); if (`size $r`) warning $r;
+    $r = assertIntEqual(1, `getAttr ($nc1 + ".d")`); if (`size $r`) warning $r;
+    $r = assertIntEqual(1, `getAttr ($nc1 + ".s")`); if (`size $r`) warning $r;
+    $r = assertIntEqual(0, `getAttr ($nc1 + ".f")`); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 1.0, 0.0, 0.0}, `getAttr ($nc1 + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
 
-    if (`objExists $t`) delete $t;
+    // 次数の異なるカーブをアタッチした時にできるClosedなカーブ
+    string $curveText2 = "2,3,1,0,3/0,0,1,1,2,2/0,0,-1;-1,0,0;0,0,1;0,0,0;0,0,-1";
+
+    string $t2 = deserializeCurve($curveText2);
+    $r = assertTrue(`objExists $t2`); if (`size $r`) warning $r;
+    $r = assertStringEqual("transform", `nodeType $t2`); if (`size $r`) warning $r;
+    string $shapeNodes2[] = `listRelatives -f -s -typ "nurbsCurve" $t2`;
+    $r = assertIntEqual(1, `size $shapeNodes2`); if (`size $r`) warning $r;
+    string $nc2 = $shapeNodes2[0];
+    $r = assertTrue(`objExists $nc2`); if (`size $r`) warning $r;
+    $r = assertStringEqual("nurbsCurve", `nodeType $nc2`); if (`size $r`) warning $r;
+    $r = assertTrue(`attributeQuery -n $nc2 -ex "sourceCurve"`); if (`size $r`) warning $r;
+    $r = assertStringEqual("nurbsCurve", `getAttr -typ ($nc2 + ".sourceCurve")`); if (`size $r`) warning $r;
+    $r = assertIntEqual(2, `getAttr ($nc2 + ".d")`); if (`size $r`) warning $r;
+    $r = assertIntEqual(3, `getAttr ($nc2 + ".s")`); if (`size $r`) warning $r;
+    $r = assertIntEqual(0, `getAttr ($nc2 + ".f")`); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0}, `getAttr ($nc2 + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
+
+    if (`objExists $t1`) delete $t1;
+    if (`objExists $t2`) delete $t2;
   }
 
   print("test1 end\n");
