@@ -5,7 +5,9 @@ Cylinder
 Diamond
 Frustum(Circle)
 Frustum(Square)
-Gear
+Gear(06)
+Gear(08)
+Gear(12)
 HalfCube
 HalfCylinder
 HalfFrustum(Circle)
