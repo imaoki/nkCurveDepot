@@ -991,7 +991,7 @@ proc selectCurveListByItem(string $item) {
 }
 
 /*-
-@param $stateOfSelection <string> 更新後の選択状態。
+@param $selectionMode <string> 更新後の選択状態。
 | 値          | 説明                             |
 | ----------- | -------------------------------- |
 | `none`      | 選択無し                         |
@@ -1002,9 +1002,9 @@ proc selectCurveListByItem(string $item) {
 | `next`      | 後に一つずらす                   |
 @returns <>
 */
-proc updateCurveList(string $stateOfSelection) {
+proc updateCurveList(string $selectionMode) {
   // print("updateCurveList\n"); // debug
-  // print("  stateOfSelection:" + $stateOfSelection + "\n"); // debug
+  // print("  selectionMode:" + $selectionMode + "\n"); // debug
 
   int $lastIndex = getCurveListSelectedIndex();
   string $lastItem = getCurveListSelectedItem();
@@ -1020,7 +1020,7 @@ proc updateCurveList(string $stateOfSelection) {
     eString("textScrollList", "-a", $curveName, $curveList);
   }
 
-  switch ($stateOfSelection) {
+  switch ($selectionMode) {
     case "none": selectCurveListByIndex(-1); break;
     case "keepIndex": selectCurveListByIndex($lastIndex); break;
     case "keepItem": selectCurveListByItem($lastItem); break;
@@ -1676,7 +1676,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.3";
+  return "1.0.4";
 }
 
 /*-
