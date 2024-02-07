@@ -1048,9 +1048,7 @@ proc nkCurveDepotWindowClosed() {
 */
 proc resetWindowMenuItemSelected() {
   // print("resetWindowMenuItemSelected\n"); // debug
-  string $nkCurveDepotWindow = getUIControl("nkCurveDepotWindow", "nkCurveDepotWindow");
-  // print("  nkCurveDepotWindow:" + $nkCurveDepotWindow + "\n"); // debug
-  windowPrefRemove("window", $nkCurveDepotWindow);
+  windowPrefRemove("window", "nkCurveDepotWindow");
   nkCurveDepot();
 }
 
@@ -1676,7 +1674,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.4";
+  return "1.0.5";
 }
 
 /*-
