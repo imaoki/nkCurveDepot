@@ -113,18 +113,20 @@ proc addCurveAttribute(string $n) {
 
 /*-
 @param $n <string>
+@param $type <string> シェイプノードのタイプ。空文字の場合は全て収集する。
 @param $validOnly <boolean> `sourceCurve`アトリビュートを持つノードのみ収集するかどうか。
 @returns <string[]>
 */
-proc string[] collectCurveNodes(string $n, int $validOnly) {
-  string $curveNodes[];
-  if (`nodeType $n` != "transform") return $curveNodes;
-  string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $n`;
-  for ($shapeNode in $shapeNodes) {
+proc string[] collectShapeNodes(string $n, string $type, int $validOnly) {
+  string $shapeNodes[];
+  if (`nodeType $n` != "transform") return $shapeNodes;
+  string $buffer[] = `listRelatives -f -s $n`;
+  for ($shapeNode in $buffer) {
+    if (`size $type` && `nodeType $shapeNode` != $type) continue;
     if ($validOnly && !isValidNurbsCurve($shapeNode)) continue;
-    $curveNodes[`size $curveNodes`] = $shapeNode;
+    $shapeNodes[`size $shapeNodes`] = $shapeNode;
   }
-  return $curveNodes;
+  return $shapeNodes;
 }
 
 /*-
@@ -194,7 +196,7 @@ proc string[] renameCurveNodes(string $n) {
   if (!(`objExists $n` && `nodeType $n` == "transform")) return $newCurveNodes;
 
   string $baseName = shortNameOf($n);
-  string $lastCurveNodes[] = collectCurveNodes($n, false);
+  string $lastCurveNodes[] = collectShapeNodes($n, "nurbsCurve", false);
   for ($i = 0; $i < `size $lastCurveNodes`; $i++) {
     string $shapeName = $baseName + "Shape" + ($i + 1);
     $newCurveNodes[$i] = `rename $lastCurveNodes[$i] $shapeName`;
@@ -258,7 +260,7 @@ proc string bundleCurves(string $nodes[]) {
 
   string $lines[];
   for ($n in $nodes) {
-    string $curveNodes[] = collectCurveNodes($n, false);
+    string $curveNodes[] = collectShapeNodes($n, "nurbsCurve", false);
     // print("  curveNodes    :{\n    " + stringArrayToString($curveNodes, ",\n    ") + "\n  }\n"); // debug
     if (!`size $curveNodes`) continue;
 
@@ -348,7 +350,7 @@ proc string deserializeCurve(string $curveText) {
   // print("  n:" + $n + "\n"); // debug
 
   if (`objExists $n` && `nodeType $n` == "transform") {
-    string $curveNodes[] = collectCurveNodes($n, false);
+    string $curveNodes[] = collectShapeNodes($n, "nurbsCurve", false);
     if (`size $curveNodes` == 1) {
       string $curveNode = $curveNodes[0];
       addCurveAttribute($curveNode);
@@ -624,7 +626,7 @@ proc string createCurve(string $curveName) {
   for ($line in $lines) {
     string $t = deserializeCurve($line);
     if (!(`objExists $t` && `nodeType $t` == "transform")) continue;
-    string $ncs[] = collectCurveNodes($t, true);
+    string $ncs[] = collectShapeNodes($t, "nurbsCurve", true);
     if (!`size $ncs`) continue;
     $curveNodes[`size $curveNodes`] = $ncs[0];
     $deletableNodes[`size $deletableNodes`] = $t;
@@ -659,7 +661,7 @@ proc string[] buildEditableGraph(string $nodes[]) {
     setTransformAttributeState($t, true);
     if (isEditMode($t)) continue;
 
-    string $curveNodes[] = collectCurveNodes($t, true);
+    string $curveNodes[] = collectShapeNodes($t, "nurbsCurve", true);
     // print("    curveNodes:{\n      " + stringArrayToString($curveNodes, ",\n      ") + "\n    }\n"); // debug
     int $numCurveNodes = `size $curveNodes`;
     if (!$numCurveNodes) continue;
@@ -724,7 +726,7 @@ proc removeEditableGraph(string $nodes[]) {
     setTransformAttributeState($t, false);
     if (!isEditMode($t)) continue;
 
-    string $curveNodes[] = collectCurveNodes($t, true);
+    string $curveNodes[] = collectShapeNodes($t, "nurbsCurve", true);
     // print("    curveNodes:{\n      " + stringArrayToString($curveNodes, ",\n      ") + "\n    }\n"); // debug
     int $numCurveNodes = `size $curveNodes`;
     if (!$numCurveNodes) continue;
@@ -880,14 +882,14 @@ proc string[] replaceCurves(string $nodes[]) {
   // 念のためヒストリを削除しておく
   delete -ch $targetNode;
 
-  string $sourceCurveNodes[] = collectCurveNodes($sourceNode, true);
+  string $sourceCurveNodes[] = collectShapeNodes($sourceNode, "nurbsCurve", true);
   // print("  sourceCurveNodes:{\n    " + stringArrayToString($sourceCurveNodes, ",\n    ") + "\n  }\n"); // debug
   if (!`size $sourceCurveNodes`) return $newNodes;
 
-  string $targetCurveNodes[] = collectCurveNodes($targetNode, false);
-  // print("  targetCurveNodes:{\n    " + stringArrayToString($targetCurveNodes, ",\n    ") + "\n  }\n"); // debug
+  string $targetShapeNodes[] = collectShapeNodes($targetNode, "", false);
+  // print("  targetShapeNodes:{\n    " + stringArrayToString($targetShapeNodes, ",\n    ") + "\n  }\n"); // debug
 
-  if (`size $targetCurveNodes`) deleteNodes($targetCurveNodes);
+  if (`size $targetShapeNodes`) deleteNodes($targetShapeNodes);
 
   if (!isValidTransform($targetNode)) addTransformAttributes($targetNode);
   if (!isValidTransform($targetNode)) return $newNodes;
@@ -1679,7 +1681,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.7";
+  return "1.0.8";
 }
 
 /*-
@@ -1734,7 +1736,7 @@ proc test0() {
     if (`objExists $t`) delete $t;
   }
 
-  // collectCurveNodes
+  // collectShapeNodes
   {
     string $ncs[];
     string $tx = `curve -d 1 -k 0 -k 1 -p 0 0 0 -p 1 0 0`;
@@ -1751,15 +1753,23 @@ proc test0() {
     $ncs[`size $ncs`] = $ncz;
     string $t = `createNode -ss "transform"`;
     parent -r -s $ncs $t;
-
     string $tnc1 = `substitute $tx $ncx $t`;
     string $tnc2 = `substitute $ty $ncy $t`;
     string $tnc3 = `substitute $tz $ncz $t`;
+
+    string $locators[] = `spaceLocator`;
+    string $l = $locators[0];
+    string $lShapeNodes[] = `listRelatives -f -s -typ "locator" $l`;
+    string $ls = $lShapeNodes[0];
+
     $r = assertFalse(isValidNurbsCurve($tnc1)); if (`size $r`) warning $r;
     $r = assertFalse(isValidNurbsCurve($tnc2)); if (`size $r`) warning $r;
     $r = assertFalse(isValidNurbsCurve($tnc3)); if (`size $r`) warning $r;
-    $r = assertStringArrayEqual({}, collectCurveNodes($t, true)); if (`size $r`) warning $r;
-    $r = assertStringArrayEqual({$tnc1, $tnc2, $tnc3}, collectCurveNodes($t, false)); if (`size $r`) warning $r;
+    $r = assertStringArrayEqual({}, collectShapeNodes($t, "nurbsCurve", true)); if (`size $r`) warning $r;
+    $r = assertStringArrayEqual({$tnc1, $tnc2, $tnc3}, collectShapeNodes($t, "nurbsCurve", false)); if (`size $r`) warning $r;
+
+    $r = assertStringArrayEqual({}, collectShapeNodes($l, "", true)); if (`size $r`) warning $r;
+    $r = assertStringArrayEqual({$ls}, collectShapeNodes($l, "", false)); if (`size $r`) warning $r;
 
     addCurveAttribute($tnc1);
     addCurveAttribute($tnc2);
@@ -1767,13 +1777,14 @@ proc test0() {
     $r = assertTrue(isValidNurbsCurve($tnc1)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($tnc2)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($tnc3)); if (`size $r`) warning $r;
-    $r = assertStringArrayEqual({$tnc1, $tnc2, $tnc3}, collectCurveNodes($t, true)); if (`size $r`) warning $r;
-    $r = assertStringArrayEqual({$tnc1, $tnc2, $tnc3}, collectCurveNodes($t, false)); if (`size $r`) warning $r;
+    $r = assertStringArrayEqual({$tnc1, $tnc2, $tnc3}, collectShapeNodes($t, "nurbsCurve", true)); if (`size $r`) warning $r;
+    $r = assertStringArrayEqual({$tnc1, $tnc2, $tnc3}, collectShapeNodes($t, "nurbsCurve", false)); if (`size $r`) warning $r;
 
     if (`objExists $tx`) delete $tx;
     if (`objExists $ty`) delete $ty;
     if (`objExists $tz`) delete $tz;
     if (`objExists $t`) delete $t;
+    if (`objExists $l`) delete $l;
   }
 
   // isEditMode
