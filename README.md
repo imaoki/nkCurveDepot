@@ -10,7 +10,7 @@
 
 * カーブシェイプのローカル変換を専用のTRS値で編集可能
 
-* 既存のカーブノードを編集機能付きカーブノードで置き換え可能
+* 既存のノード（カーブ、ロケータ、ポリゴン等々）を編集機能付きカーブに置き換え可能
 
 ## 開発環境
 
@@ -37,16 +37,16 @@ nkCurveDepot;
 
 ![window-main](resource/window-main.png "window-main")
 
-| ボタン                                                                                                                                                                                        | 機能                                     |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| ![Add Curve](resource/item_add.png "Add Curve")                                                                                                                                               | カーブ定義を追加                         |
-| ![Rename Curve](resource/passSetRelationEditor.png "Rename Curve")                                                                                                                            | カーブ定義をリネーム                     |
-| ![Create Curve](resource/createNode.png "Create Curve")                                                                                                                                       | カーブノードをシーンに作成               |
-| ![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform")                                                                                                                | カーブシェイプのローカル変換を有効化     |
-| ![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform")                                                                                                                      | カーブシェイプのローカル変換を無効化     |
-| ![Replace Curve](resource/bufferSnap.png "Replace Curve")                                                                                                                                     | 既存のカーブノードのシェイプを置き換える |
-| ![Delete Curve](resource/item_delete.png "Delete Curve")                                                                                                                                      | カーブ定義を削除する                     |
-| ![Move Curve Up](resource/item_up.png "Move Curve Up")![Move Curve Down](resource/item_down.png "Move Curve Down")![Sort by ascending order](resource/sortName.png "Sort by ascending order") | カーブ定義を並べ替える                   |
+| ボタン                                                                                                                                                                                        | 機能                                 |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| ![Add Curve](resource/item_add.png "Add Curve")                                                                                                                                               | カーブ定義を追加                     |
+| ![Rename Curve](resource/passSetRelationEditor.png "Rename Curve")                                                                                                                            | カーブ定義をリネーム                 |
+| ![Create Curve](resource/createNode.png "Create Curve")                                                                                                                                       | カーブノードをシーンに作成           |
+| ![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform")                                                                                                                | カーブシェイプのローカル変換を有効化 |
+| ![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform")                                                                                                                      | カーブシェイプのローカル変換を無効化 |
+| ![Replace Curve](resource/bufferSnap.png "Replace Curve")                                                                                                                                     | 既存のノードのシェイプを置き換える   |
+| ![Delete Curve](resource/item_delete.png "Delete Curve")                                                                                                                                      | カーブ定義を削除する                 |
+| ![Move Curve Up](resource/item_up.png "Move Curve Up")![Move Curve Down](resource/item_down.png "Move Curve Down")![Sort by ascending order](resource/sortName.png "Sort by ascending order") | カーブ定義を並べ替える               |
 
 ## カーブ定義の追加とカーブノードの作成
 
@@ -82,13 +82,13 @@ nkCurveDepot;
 
   カーブの複雑さによっては大量の計算ノードが作成されるためです。
 
-## 既存のカーブノードを置き換える
+## 既存のノードを置き換える
 
 ![replace-curve](resource/replace-curve.gif "replace-curve")
 
 01. 置き換え元のカーブノード（本ツールで作成）を選択。
 
-02. 置き換え対象のカーブノード（通常のカーブノード or 本ツールで作成したカーブノード）を選択。
+02. 置き換え対象のノード（任意の種類のノード、または本ツールで作成したカーブノード）を選択。
 
 03. ![Replace Curve](resource/bufferSnap.png "Replace Curve")ボタンで置き換え。
 
