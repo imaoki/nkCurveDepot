@@ -13,10 +13,12 @@ HalfCylinder
 HalfFrustum(Circle)
 HalfFrustum(Square)
 HalfSquare
+HalfSquare(Directional)
 Octahedron
 Pyramid(Diamond)
 Pyramid(Square)
 Sphere
 Square
 Square(Directional)
+Trapezoid
 Triangle
