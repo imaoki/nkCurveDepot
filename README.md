@@ -103,3 +103,9 @@ nkCurveDepot;
 * ![Delete Curve](resource/item_delete.png "Delete Curve")ボタンで削除したカーブ定義は`nkCurveDepotCurves/trash`ディレクトリに上書き移動されます。
 
   残しておきたいカーブ定義は適宜`.curvedepot`ファイルをバックアップしてください。
+
+## ToDo
+
+* カーブ定義の別名保存とインポート
+
+* カーブ定義のカテゴリ分け
