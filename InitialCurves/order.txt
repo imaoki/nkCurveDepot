@@ -3,6 +3,7 @@ Circle(Directional)
 Cube
 Cylinder
 Diamond
+DottedCross
 Frustum(Circle)
 Frustum(Square)
 Gear(06)
@@ -14,6 +15,9 @@ HalfFrustum(Circle)
 HalfFrustum(Square)
 HalfSquare
 HalfSquare(Directional)
+HoleGear(06)
+HoleGear(08)
+HoleGear(12)
 Octahedron
 Pyramid(Diamond)
 Pyramid(Square)
