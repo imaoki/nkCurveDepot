@@ -849,7 +849,7 @@ proc lockCurve(string $nodes[], int $state) {
 }
 
 /*-
-@param $nodes <string[]>
+@param $nodes <string[]> 1番目要素がソースノード、2番目要素がターゲットノードの配列。
 @returns <string[]>
 */
 proc string[] replaceCurves(string $nodes[]) {
@@ -862,8 +862,10 @@ proc string[] replaceCurves(string $nodes[]) {
   string $targetNode = $nodes[1];
   // print("  sourceNode:" + $sourceNode + "\n"); // debug
   // print("  targetNode:" + $targetNode + "\n"); // debug
-  if (!isValidTransform($sourceNode)) return $newNodes;
-  if (`nodeType $targetNode` != "transform") return $newNodes;
+  if (!(
+    isValidTransform($sourceNode)
+        && (`objExists $targetNode` && `nodeType $targetNode` == "transform")
+  )) return $newNodes;
 
   if (isEditMode($sourceNode)) removeEditableGraph({$sourceNode});
   if (isEditMode($sourceNode)) return $newNodes;
@@ -872,6 +874,10 @@ proc string[] replaceCurves(string $nodes[]) {
     if (isEditMode($targetNode)) removeEditableGraph({$targetNode});
     if (isEditMode($targetNode)) return $newNodes;
   }
+  else {
+    addTransformAttributes($targetNode);
+  }
+  if (!isValidTransform($targetNode)) return $newNodes;
 
   // 念のためヒストリを削除しておく
   delete -ch $targetNode;
@@ -885,30 +891,17 @@ proc string[] replaceCurves(string $nodes[]) {
 
   if (`size $targetShapeNodes`) deleteNodes($targetShapeNodes);
 
-  if (!isValidTransform($targetNode)) addTransformAttributes($targetNode);
-  if (!isValidTransform($targetNode)) return $newNodes;
-
-  float $st[] = `getAttr ($sourceNode + ".st")`;
-  float $sr[] = `getAttr ($sourceNode + ".sr")`;
-  float $ss[] = `getAttr ($sourceNode + ".ss")`;
-  // print("  st:{" + floatArrayToString($st, ", ") + "}\n"); // debug
-  // print("  sr:{" + floatArrayToString($sr, ", ") + "}\n"); // debug
-  // print("  ss:{" + floatArrayToString($ss, ", ") + "}\n"); // debug
-  setTransformAttributeLock($targetNode, false);
-  setAttr ($targetNode + ".st") -typ "double3" $st[0] $st[1] $st[2];
-  setAttr ($targetNode + ".sr") -typ "double3" $sr[0] $sr[1] $sr[2];
-  setAttr ($targetNode + ".ss") -typ "double3" $ss[0] $ss[1] $ss[2];
-
   parent -r -s $sourceCurveNodes $targetNode;
   $newNodes = renameCurveNodes($targetNode);
+  if (`objExists $sourceNode`) delete $sourceNode;
 
   // ピボットのオフセットを反映させる
   buildEditableGraph({$targetNode});
-  removeEditableGraph({$targetNode});
-  refresh;
-
-  if (`objExists $sourceNode`) delete $sourceNode;
   select -r $targetNode;
+  // この順番じゃないとなぜか状態が反映されない
+  dgdirty $targetNode;
+  refresh;
+  removeEditableGraph({$targetNode});
   return $newNodes;
 }
 
@@ -1675,7 +1668,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.0.10";
+  return "1.1.0";
 }
 
 /*-
@@ -2500,14 +2493,14 @@ proc test3() {
 
     addTransformAttributes($t3);
     addCurveAttribute($nc3);
-    setAttr ($t3 + ".sr") -typ "double3" 45.0 45.0 45.0;
-    setAttr ($t3 + ".ss") -typ "double3" 3.0 3.0 3.0;
+    setAttr ($t3 + ".sr") -typ "double3" 0.0 90.0 0.0;
+    setAttr ($t3 + ".ss") -typ "double3" 3.0 0.0 0.0;
     setAttr ($nc3 + ".sc") -typ "nurbsCurve" 1 1 0 0 3 2 0 1 2 0 0 0 0 0 1;
     $r = assertTrue(isValidTransform($t3)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($nc3)); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t3 + ".st")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({45.0, 45.0, 45.0}, `getAttr ($t3 + ".sr")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({3.0, 3.0, 3.0}, `getAttr ($t3 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 90.0, 0.0}, `getAttr ($t3 + ".sr")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({3.0, 0.0, 0.0}, `getAttr ($t3 + ".ss")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 0.0, 1.0}, `getAttr ($nc3 + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
 
     $t2ShapeNodes = replaceCurves({$t1, $t2});
@@ -2515,9 +2508,9 @@ proc test3() {
     $r = assertStringArrayEqual({$t2 + "Shape1"}, $t2ShapeNodes); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($t2ShapeNodes[0])); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t2 + ".st")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 90.0}, `getAttr ($t2 + ".sr")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({2.0, 1.0, 1.0}, `getAttr ($t2 + ".ss")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 2.0, 0.0}, `getAttr ($t2ShapeNodes[0] + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t2 + ".sr")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({1.0, 1.0, 1.0}, `getAttr ($t2 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 1.0, 0.0, 0.0}, `getAttr ($t2ShapeNodes[0] + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t1`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t1ShapeNodes[0]`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $nc2`); if (`size $r`) warning $r;
@@ -2527,9 +2520,9 @@ proc test3() {
     $r = assertStringArrayEqual({$t3 + "Shape1"}, $t3ShapeNodes); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($t3ShapeNodes[0])); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t3 + ".st")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 90.0}, `getAttr ($t3 + ".sr")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({2.0, 1.0, 1.0}, `getAttr ($t3 + ".ss")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 2.0, 0.0}, `getAttr ($t3ShapeNodes[0] + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 90.0, 0.0}, `getAttr ($t3 + ".sr")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({3.0, 0.0, 0.0}, `getAttr ($t3 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 0.0, -3.0}, `getAttr ($t3ShapeNodes[0] + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t2`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t2ShapeNodes[0]`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $nc3`); if (`size $r`) warning $r;
