@@ -1,9 +1,10 @@
 Circle
 Circle(Directional)
+Cross
+Cross(Dotted)
 Cube
 Cylinder
 Diamond
-DottedCross
 Frustum(Circle)
 Frustum(Square)
 Gear(06)
