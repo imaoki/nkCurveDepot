@@ -1532,48 +1532,6 @@ proc buildMainWindow() {
 
   textScrollList -e -dcc "nkCurveDepotEventController(\"nkCurveDepotWindow\", \"dcc\", \"curveList\");" $curveList;
 
-  // print("  " + $nkCurveDepotWindow + "\n"); // debug
-  // print("  " + $outerForm + "\n"); // debug
-  // print("  " + $menuBar + "\n"); // debug
-  // print("  " + $fileMenu + "\n"); // debug
-  // print("  " + $resetWindowMenuItem + "\n"); // debug
-  // print("  " + $quitMenuItem + "\n"); // debug
-  // print("  " + $helpMenu + "\n"); // debug
-  // print("  " + $aboutMenuItem + "\n"); // debug
-
-  // print("  " + $column + "\n"); // debug
-  // print("  " + $curve1Button + "\n"); // debug
-  // print("  " + $curve2Button + "\n"); // debug
-  // print("  " + $curve3Button + "\n"); // debug
-  // print("  " + $curve4Button + "\n"); // debug
-  // print("  " + $curve5Button + "\n"); // debug
-  // print("  " + $curve6Button + "\n"); // debug
-  // print("  " + $curve7Button + "\n"); // debug
-  // print("  " + $curve8Button + "\n"); // debug
-  // print("  " + $curve9Button + "\n"); // debug
-  // print("  " + $curve10Button + "\n"); // debug
-  // print("  " + $curve11Button + "\n"); // debug
-  // print("  " + $curve12Button + "\n"); // debug
-  // print("  " + $curve13Button + "\n"); // debug
-  // print("  " + $curve14Button + "\n"); // debug
-  // print("  " + $curve15Button + "\n"); // debug
-
-  // print("  " + $topToolRow + "\n"); // debug
-  // print("  " + $addButton + "\n"); // debug
-  // print("  " + $renameButton + "\n"); // debug
-  // print("  " + $createButton + "\n"); // debug
-  // print("  " + $unlockButton + "\n"); // debug
-  // print("  " + $lockButton + "\n"); // debug
-  // print("  " + $replaceButton + "\n"); // debug
-
-  // print("  " + $curveList + "\n"); // debug
-
-  // print("  " + $bottomToolRow + "\n"); // debug
-  // print("  " + $deleteButton + "\n"); // debug
-  // print("  " + $moveUpButton + "\n"); // debug
-  // print("  " + $moveDownButton + "\n"); // debug
-  // print("  " + $sortButton + "\n"); // debug
-
   appendUIControls({
     $nkCurveDepotWindow,
     $curveList
