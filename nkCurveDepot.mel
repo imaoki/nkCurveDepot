@@ -4,7 +4,7 @@
 // ボイラープレート
 // /////////////////////////////////////////////////////////////////////////////
 /*1.1.0:アサーション*/proc string assertTrue(int $a) {return ($a == true) ? "" : ("Assert: expected 1, got " + $a);}proc string assertFalse(int $a) {return ($a == false) ? "" : ("Assert: expected 0, got " + $a);}proc string assertFloatEqual(float $e, float $a, float $t) {return (`abs ($e - $a)` <= $t) ? "" : ("Assert: expected " + $e + ", got " + $a);}proc string assertFloatNotEqual(float $e, float $a, float $t) {return (`abs ($e - $a)` > $t) ? "" : ("Assert: expected " + $e + ", got " + $a);}proc string assertIntEqual(int $e, int $a) {return ($a == $e) ? "" : ("Assert: expected " + $e + ", got " + $a);}proc string assertIntNotEqual(int $e, int $a) {return ($a != $e) ? "" : ("Assert: expected " + $e + ", got " + $a);}proc string assertStringEqual(string $e, string $a) {return ($a == $e) ? "" : ("Assert: expected " + $e + ", got " + $a);}proc string assertStringNotEqual(string $e, string $a) {return ($a != $e) ? "" : ("Assert: expected " + $e + ", got " + $a);}proc string assertFloatArrayEqual(float $es[], float $as[], float $t) {int $numAs = `size $as`;int $isEqual = $numAs == `size $es`;if ($isEqual) {for ($i = 0; $i < $numAs; $i++) {$isEqual = `abs ($es[$i] - $as[$i])` <= $t;if (!$isEqual) break;}}return ($isEqual) ? "" : ("Assert: expected {" + floatArrayToString($es, ", ") + "}, got {" + floatArrayToString($as, ", ") + "}");}proc string assertIntArrayEqual(int $es[], int $as[]) {int $numAs = `size $as`;int $isEqual = $numAs == `size $es`;if ($isEqual) {for ($i = 0; $i < $numAs; $i++) {$isEqual = $as[$i] == $es[$i];if (!$isEqual) break;}}return ($isEqual) ? "" : ("Assert: expected {" + intArrayToString($es, ", ") + "}, got {" + intArrayToString($as, ", ") + "}");}proc string assertStringArrayEqual(string $es[], string $as[]) {int $numAs = `size $as`;int $isEqual = $numAs == `size $es`;if ($isEqual) {for ($i = 0; $i < $numAs; $i++) {$isEqual = $as[$i] == $es[$i];if (!$isEqual) break;}}return ($isEqual) ? "" : ("Assert: expected {" + stringArrayToString($es, ", ") + "}, got {" + stringArrayToString($as, ", ") + "}");}proc testNewScene() {file -f -new;}proc testOpenScene(string $filename) {file -f -op "v=0;"  -iv  -typ "mayaAscii" -pmt false -o $filename;}
-/*1.5.0:アトリビュート*/proc int existsAttribute(string $node, string $attribute) {return (`objExists $node` && `attributeQuery -ex -n $node $attribute`);}proc int isEditableAttribute(string $node, string $attribute) {return (existsAttribute($node, $attribute) && !`connectionInfo -id ($node + "." + $attribute)`);}proc int isAttributeLocked(string $node, string $attribute) {if (!existsAttribute($node, $attribute)) return true;return `getAttr -l ($node + "." + $attribute)`;}proc setAttributeLock(string $node, string $attribute, int $state) {if (!existsAttribute($node, $attribute)) return;setAttr -l $state ($node + "." + $attribute);}proc int hasShapeTransformAttributes(string $n) {return (`objExists $n` && `attributeQuery -n $n -ex "shapeTranslate"` && `getAttr -typ ($n + ".shapeTranslate")` == "double3" && `attributeQuery -n $n -ex "shapeTranslateX"` && `getAttr -typ ($n + ".shapeTranslateX")` == "doubleLinear" && `attributeQuery -n $n -ex "shapeTranslateY"` && `getAttr -typ ($n + ".shapeTranslateY")` == "doubleLinear" && `attributeQuery -n $n -ex "shapeTranslateZ"` && `getAttr -typ ($n + ".shapeTranslateZ")` == "doubleLinear" && `attributeQuery -n $n -ex "shapeRotate"` && `getAttr -typ ($n + ".shapeRotate")` == "double3" && `attributeQuery -n $n -ex "shapeRotateX"` && `getAttr -typ ($n + ".shapeRotateX")` == "doubleAngle" && `attributeQuery -n $n -ex "shapeRotateY"` && `getAttr -typ ($n + ".shapeRotateY")` == "doubleAngle" && `attributeQuery -n $n -ex "shapeRotateZ"` && `getAttr -typ ($n + ".shapeRotateZ")` == "doubleAngle" && `attributeQuery -n $n -ex "shapeScale"` && `getAttr -typ ($n + ".shapeScale")` == "double3" && `attributeQuery -n $n -ex "shapeScaleX"` && `getAttr -typ ($n + ".shapeScaleX")` == "double" && `attributeQuery -n $n -ex "shapeScaleY"` && `getAttr -typ ($n + ".shapeScaleY")` == "double" && `attributeQuery -n $n -ex "shapeScaleZ"` && `getAttr -typ ($n + ".shapeScaleZ")` == "double");}proc addShapeTransformAttributes(string $n) {if (!`objExists $n` || hasShapeTransformAttributes($n)) return;addAttr -at "double3"      -k false -ln "shapeTranslate"  -sn "st" $n;addAttr -at "doubleLinear" -k false -ln "shapeTranslateX" -sn "stx" -p "shapeTranslate" $n;addAttr -at "doubleLinear" -k false -ln "shapeTranslateY" -sn "sty" -p "shapeTranslate" $n;addAttr -at "doubleLinear" -k false -ln "shapeTranslateZ" -sn "stz" -p "shapeTranslate" $n;addAttr -at "double3"      -k false -ln "shapeRotate"     -sn "sr" $n;addAttr -at "doubleAngle"  -k false -ln "shapeRotateX"    -sn "srx" -p "shapeRotate" $n;addAttr -at "doubleAngle"  -k false -ln "shapeRotateY"    -sn "sry" -p "shapeRotate" $n;addAttr -at "doubleAngle"  -k false -ln "shapeRotateZ"    -sn "srz" -p "shapeRotate" $n;addAttr -at "double3"      -k false -ln "shapeScale"      -sn "ss" $n;addAttr -at "double"       -k false -ln "shapeScaleX"     -sn "ssx" -p "shapeScale" $n;addAttr -at "double"       -k false -ln "shapeScaleY"     -sn "ssy" -p "shapeScale" $n;addAttr -at "double"       -k false -ln "shapeScaleZ"     -sn "ssz" -p "shapeScale" $n;setAttr ($n + ".ss") -typ "double3" 1.0 1.0 1.0;}proc float getFloatAttribute(string $node, string $attribute, float $default) {if (!existsAttribute($node, $attribute)) return $default;return `getAttr ($node + "." + $attribute)`;}proc setFloatAttribute(string $node, string $attribute, float $value) {if (!isEditableAttribute($node, $attribute)) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($value > $max[0]) $value = $max[0];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($value < $min[0]) $value = $min[0];}setAttr ($node + "." + $attribute) $value;}proc batchSetFloatAttribute(string $nodes[], string $attribute, float $value) {for ($n in $nodes) {setFloatAttribute($n, $attribute, $value);}}proc float[] getFloat3Attribute(string $node, string $attribute, float $defaults[]) {if (!existsAttribute($node, $attribute)) return $defaults;return `getAttr ($node + "." + $attribute)`;}proc setFloat3Attribute(string $node, string $attribute, float $values[]) {if (!isEditableAttribute($node, $attribute) || `size $values` != 3) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($values[0] > $max[0]) $values[0] = $max[0];if ($values[1] > $max[1]) $values[1] = $max[1];if ($values[2] > $max[2]) $values[2] = $max[2];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($values[0] < $min[0]) $values[0] = $min[0];if ($values[1] < $min[1]) $values[1] = $min[1];if ($values[2] < $min[2]) $values[2] = $min[2];}setAttr ($node + "." + $attribute) $values[0] $values[1] $values[2];}proc batchSetFloat3Attribute(string $nodes[], string $attribute, float $values[]) {for ($n in $nodes) {setFloat3Attribute($n, $attribute, $values);}}proc int getIntAttribute(string $node, string $attribute, int $default) {if (!existsAttribute($node, $attribute)) return $default;return `getAttr ($node + "." + $attribute)`;}proc setIntAttribute(string $node, string $attribute, int $value) {if (!isEditableAttribute($node, $attribute)) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($value > $max[0]) $value = (int) $max[0];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($value < $min[0]) $value = (int) $min[0];}setAttr ($node + "." + $attribute) $value;}proc batchSetIntAttribute(string $nodes[], string $attribute, int $value) {for ($n in $nodes) {setIntAttribute($n, $attribute, $value);}}proc int[] getInt3Attribute(string $node, string $attribute, int $defaults[]) {if (!existsAttribute($node, $attribute)) return $defaults;return `getAttr ($node + "." + $attribute)`;}proc setInt3Attribute(string $node, string $attribute, int $values[]) {if (!isEditableAttribute($node, $attribute) || `size $values` != 3) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($values[0] > $max[0]) $values[0] = (int) $max[0];if ($values[1] > $max[1]) $values[1] = (int) $max[1];if ($values[2] > $max[2]) $values[2] = (int) $max[2];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($values[0] < $min[0]) $values[0] = (int) $min[0];if ($values[1] < $min[1]) $values[1] = (int) $min[1];if ($values[2] < $min[2]) $values[2] = (int) $min[2];}setAttr ($node + "." + $attribute) $values[0] $values[1] $values[2];}proc batchSetInt3Attribute(string $nodes[], string $attribute, int $values[]) {for ($n in $nodes) {setInt3Attribute($n, $attribute, $values);}}proc string getStringAttribute(string $node, string $attribute, string $default) {string $value = $default;if (!existsAttribute($node, $attribute)) return $value;$value = `getAttr ($node + "." + $attribute)`;if (!`size $value`) $value = "";return $value;}proc setStringAttribute(string $node, string $attribute, string $value) {if (!isEditableAttribute($node, $attribute)) return;setAttr ($node + "." + $attribute) -typ "string" $value;}proc batchSetStringAttribute(string $nodes[], string $attribute, string $value) {for ($n in $nodes) {setStringAttribute($n, $attribute, $value);}}proc string[] getSourceConnections(string $n,string $attributes[],string $type,string $sourceAttributes[],string $targetAttributes[]) {string $sourceNodes[];clear $sourceAttributes;clear $targetAttributes;if (!`objExists $n`) return $sourceNodes;$n = longNameOf($n);int $typeFlag = `size $type` > 0;if (`size $attributes`) {for ($attribute in $attributes) {if (!existsAttribute($n, $attribute)) continue;string $destPath = $n + "." + $attribute;string $nodes[];if ($typeFlag) {$nodes = `listConnections -d false -p false -s true -t $type $destPath`;}else {$nodes = `listConnections -d false -p false -s true $destPath`;}$sourceNodes = stringArrayCatenate($sourceNodes, $nodes);string $plugs[];if ($typeFlag) {$plugs = `listConnections -d false -p true -s true -t $type $destPath`;}else {$plugs = `listConnections -d false -p true -s true $destPath`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $sourcePath = longNameOf($buffer[0]) + "." + $buffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}else {string $plugs[];if ($typeFlag) {$sourceNodes = `listConnections -d false -p false -s true -t $type $n`;$plugs = `listConnections -d false -p true -s true -t $type $n`;}else {$sourceNodes = `listConnections -d false -p false -s true $n`;$plugs = `listConnections -d false -p true -s true $n`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $sourcePath = longNameOf($buffer[0]) + "." + $buffer[1];string $targetPlugs[] = `listConnections -d true -p true -s false $sourcePath`;$targetPlugs = stringArrayRemoveDuplicates($targetPlugs);for ($targetPlug in $targetPlugs) {string $targetBuffer[];if (`tokenize $targetPlug "." $targetBuffer` != 2) continue;string $targetNode = longNameOf($targetBuffer[0]);if ($targetNode != $n) continue;string $destPath = $targetNode + "." + $targetBuffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}$sourceNodes = stringArrayRemoveDuplicates($sourceNodes);for ($i = 0; $i < `size $sourceNodes`; $i++) {$sourceNodes[$i] = longNameOf($sourceNodes[$i]);}return $sourceNodes;}proc string[] getDestConnections(string $n,string $attributes[],string $type,string $sourceAttributes[],string $targetAttributes[]) {string $destNodes[];clear $sourceAttributes;clear $targetAttributes;if (!`objExists $n`) return $destNodes;$n = longNameOf($n);int $typeFlag = `size $type` > 0;if (`size $attributes`) {for ($attribute in $attributes) {if (!existsAttribute($n, $attribute)) continue;string $sourcePath = $n + "." + $attribute;string $nodes[];if ($typeFlag) {$nodes = `listConnections -d true -p false -s false -t $type $sourcePath`;}else {$nodes = `listConnections -d true -p false -s false $sourcePath`;}$destNodes = stringArrayCatenate($destNodes, $nodes);string $plugs[];if ($typeFlag) {$plugs = `listConnections -d true -p true -s false -t $type $sourcePath`;}else {$plugs = `listConnections -d true -p true -s false $sourcePath`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $destPath = longNameOf($buffer[0]) + "." + $buffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}else {string $plugs[];if ($typeFlag) {$destNodes = `listConnections -d true -p false -s false -t $type $n`;$plugs = `listConnections -d true -p true -s false -t $type $n`;}else {$destNodes = `listConnections -d true -p false -s false $n`;$plugs = `listConnections -d true -p true -s false $n`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $destPath = longNameOf($buffer[0]) + "." + $buffer[1];string $sourcePlugs[] = `listConnections -d false -p true -s true $destPath`;$sourcePlugs = stringArrayRemoveDuplicates($sourcePlugs);for ($sourcePlug in $sourcePlugs) {string $sourceBuffer[];if (`tokenize $sourcePlug "." $sourceBuffer` != 2) continue;string $sourceNode = longNameOf($sourceBuffer[0]);if ($sourceNode != $n) continue;string $sourcePath = $sourceNode + "." + $sourceBuffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}$destNodes = stringArrayRemoveDuplicates($destNodes);for ($i = 0; $i < `size $destNodes`; $i++) {$destNodes[$i] = longNameOf($destNodes[$i]);}return $destNodes;}proc connectAttributes(string $sourceAttributes[],string $targetAttributes[],int $force) {int $numAttributes = `size $sourceAttributes`;if (`size $targetAttributes` != $numAttributes) return;for ($i = 0; $i < $numAttributes; $i++) {string $sourceAttribute = $sourceAttributes[$i];string $targetAttribute = $targetAttributes[$i];if (`isConnected -iuc $sourceAttribute $targetAttribute`) continue;if ($force) {connectAttr -f $sourceAttribute $targetAttribute;}else {connectAttr $sourceAttribute $targetAttribute;}}}proc disconnectAttributes(string $sourceAttributes[],string $targetAttributes[]) {int $numAttributes = `size $sourceAttributes`;if (`size $targetAttributes` != $numAttributes) return;for ($i = 0; $i < $numAttributes; $i++) {string $sourceAttribute = $sourceAttributes[$i];string $targetAttribute = $targetAttributes[$i];if (!`isConnected -iuc $sourceAttribute $targetAttribute`) continue;disconnectAttr $sourceAttribute $targetAttribute;}}
+/*1.6.0:アトリビュート*/proc int existsAttribute(string $node, string $attribute) {return (`objExists $node` && `attributeQuery -ex -n $node $attribute`);}proc int isEditableAttribute(string $node, string $attribute) {return (existsAttribute($node, $attribute) && !`connectionInfo -id ($node + "." + $attribute)`);}proc int isAttributeLocked(string $node, string $attribute) {if (!existsAttribute($node, $attribute)) return true;return `getAttr -l ($node + "." + $attribute)`;}proc setAttributeLock(string $node, string $attribute, int $state) {if (!existsAttribute($node, $attribute)) return;setAttr -l $state ($node + "." + $attribute);}proc int isAttributeChannelBox(string $node, string $attribute) {if (!existsAttribute($node, $attribute)) return false;return `getAttr -cb ($node + "." + $attribute)`;}proc setAttributeChannelBox(string $node, string $attribute, int $state) {if (!existsAttribute($node, $attribute)) return;setAttr -cb $state ($node + "." + $attribute);}proc int hasShapeTransformAttributes(string $n) {return (`objExists $n` && `attributeQuery -n $n -ex "shapeTranslate"` && `getAttr -typ ($n + ".shapeTranslate")` == "double3" && `attributeQuery -n $n -ex "shapeTranslateX"` && `getAttr -typ ($n + ".shapeTranslateX")` == "doubleLinear" && `attributeQuery -n $n -ex "shapeTranslateY"` && `getAttr -typ ($n + ".shapeTranslateY")` == "doubleLinear" && `attributeQuery -n $n -ex "shapeTranslateZ"` && `getAttr -typ ($n + ".shapeTranslateZ")` == "doubleLinear" && `attributeQuery -n $n -ex "shapeRotate"` && `getAttr -typ ($n + ".shapeRotate")` == "double3" && `attributeQuery -n $n -ex "shapeRotateX"` && `getAttr -typ ($n + ".shapeRotateX")` == "doubleAngle" && `attributeQuery -n $n -ex "shapeRotateY"` && `getAttr -typ ($n + ".shapeRotateY")` == "doubleAngle" && `attributeQuery -n $n -ex "shapeRotateZ"` && `getAttr -typ ($n + ".shapeRotateZ")` == "doubleAngle" && `attributeQuery -n $n -ex "shapeScale"` && `getAttr -typ ($n + ".shapeScale")` == "double3" && `attributeQuery -n $n -ex "shapeScaleX"` && `getAttr -typ ($n + ".shapeScaleX")` == "double" && `attributeQuery -n $n -ex "shapeScaleY"` && `getAttr -typ ($n + ".shapeScaleY")` == "double" && `attributeQuery -n $n -ex "shapeScaleZ"` && `getAttr -typ ($n + ".shapeScaleZ")` == "double");}proc addShapeTransformAttributes(string $n) {if (!`objExists $n` || hasShapeTransformAttributes($n)) return;addAttr -at "double3"      -k false -ln "shapeTranslate"  -sn "st" $n;addAttr -at "doubleLinear" -k false -ln "shapeTranslateX" -sn "stx" -p "shapeTranslate" $n;addAttr -at "doubleLinear" -k false -ln "shapeTranslateY" -sn "sty" -p "shapeTranslate" $n;addAttr -at "doubleLinear" -k false -ln "shapeTranslateZ" -sn "stz" -p "shapeTranslate" $n;addAttr -at "double3"      -k false -ln "shapeRotate"     -sn "sr" $n;addAttr -at "doubleAngle"  -k false -ln "shapeRotateX"    -sn "srx" -p "shapeRotate" $n;addAttr -at "doubleAngle"  -k false -ln "shapeRotateY"    -sn "sry" -p "shapeRotate" $n;addAttr -at "doubleAngle"  -k false -ln "shapeRotateZ"    -sn "srz" -p "shapeRotate" $n;addAttr -at "double3"      -k false -ln "shapeScale"      -sn "ss" $n;addAttr -at "double"       -k false -ln "shapeScaleX"     -sn "ssx" -p "shapeScale" $n;addAttr -at "double"       -k false -ln "shapeScaleY"     -sn "ssy" -p "shapeScale" $n;addAttr -at "double"       -k false -ln "shapeScaleZ"     -sn "ssz" -p "shapeScale" $n;setAttr ($n + ".ss") -typ "double3" 1.0 1.0 1.0;}proc float getFloatAttribute(string $node, string $attribute, float $default) {if (!existsAttribute($node, $attribute)) return $default;return `getAttr ($node + "." + $attribute)`;}proc setFloatAttribute(string $node, string $attribute, float $value) {if (!isEditableAttribute($node, $attribute)) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($value > $max[0]) $value = $max[0];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($value < $min[0]) $value = $min[0];}setAttr ($node + "." + $attribute) $value;}proc batchSetFloatAttribute(string $nodes[], string $attribute, float $value) {for ($n in $nodes) {setFloatAttribute($n, $attribute, $value);}}proc float[] getFloat3Attribute(string $node, string $attribute, float $defaults[]) {if (!existsAttribute($node, $attribute)) return $defaults;return `getAttr ($node + "." + $attribute)`;}proc setFloat3Attribute(string $node, string $attribute, float $values[]) {if (!isEditableAttribute($node, $attribute) || `size $values` != 3) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($values[0] > $max[0]) $values[0] = $max[0];if ($values[1] > $max[1]) $values[1] = $max[1];if ($values[2] > $max[2]) $values[2] = $max[2];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($values[0] < $min[0]) $values[0] = $min[0];if ($values[1] < $min[1]) $values[1] = $min[1];if ($values[2] < $min[2]) $values[2] = $min[2];}setAttr ($node + "." + $attribute) $values[0] $values[1] $values[2];}proc batchSetFloat3Attribute(string $nodes[], string $attribute, float $values[]) {for ($n in $nodes) {setFloat3Attribute($n, $attribute, $values);}}proc int getIntAttribute(string $node, string $attribute, int $default) {if (!existsAttribute($node, $attribute)) return $default;return `getAttr ($node + "." + $attribute)`;}proc setIntAttribute(string $node, string $attribute, int $value) {if (!isEditableAttribute($node, $attribute)) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($value > $max[0]) $value = (int) $max[0];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($value < $min[0]) $value = (int) $min[0];}setAttr ($node + "." + $attribute) $value;}proc batchSetIntAttribute(string $nodes[], string $attribute, int $value) {for ($n in $nodes) {setIntAttribute($n, $attribute, $value);}}proc int[] getInt3Attribute(string $node, string $attribute, int $defaults[]) {if (!existsAttribute($node, $attribute)) return $defaults;return `getAttr ($node + "." + $attribute)`;}proc setInt3Attribute(string $node, string $attribute, int $values[]) {if (!isEditableAttribute($node, $attribute) || `size $values` != 3) return;if (`attributeQuery -mxe -n $node $attribute`) {float $max[] = `attributeQuery -max -n $node $attribute`;if ($values[0] > $max[0]) $values[0] = (int) $max[0];if ($values[1] > $max[1]) $values[1] = (int) $max[1];if ($values[2] > $max[2]) $values[2] = (int) $max[2];}if (`attributeQuery -mne -n $node $attribute`) {float $min[] = `attributeQuery -min -n $node $attribute`;if ($values[0] < $min[0]) $values[0] = (int) $min[0];if ($values[1] < $min[1]) $values[1] = (int) $min[1];if ($values[2] < $min[2]) $values[2] = (int) $min[2];}setAttr ($node + "." + $attribute) $values[0] $values[1] $values[2];}proc batchSetInt3Attribute(string $nodes[], string $attribute, int $values[]) {for ($n in $nodes) {setInt3Attribute($n, $attribute, $values);}}proc string getStringAttribute(string $node, string $attribute, string $default) {string $value = $default;if (!existsAttribute($node, $attribute)) return $value;$value = `getAttr ($node + "." + $attribute)`;if (!`size $value`) $value = "";return $value;}proc setStringAttribute(string $node, string $attribute, string $value) {if (!isEditableAttribute($node, $attribute)) return;setAttr ($node + "." + $attribute) -typ "string" $value;}proc batchSetStringAttribute(string $nodes[], string $attribute, string $value) {for ($n in $nodes) {setStringAttribute($n, $attribute, $value);}}proc string[] getSourceConnections(string $n,string $attributes[],string $type,string $sourceAttributes[],string $targetAttributes[]) {string $sourceNodes[];clear $sourceAttributes;clear $targetAttributes;if (!`objExists $n`) return $sourceNodes;$n = longNameOf($n);int $typeFlag = `size $type` > 0;if (`size $attributes`) {for ($attribute in $attributes) {if (!existsAttribute($n, $attribute)) continue;string $destPath = $n + "." + $attribute;string $nodes[];if ($typeFlag) {$nodes = `listConnections -d false -p false -s true -t $type $destPath`;}else {$nodes = `listConnections -d false -p false -s true $destPath`;}$sourceNodes = stringArrayCatenate($sourceNodes, $nodes);string $plugs[];if ($typeFlag) {$plugs = `listConnections -d false -p true -s true -t $type $destPath`;}else {$plugs = `listConnections -d false -p true -s true $destPath`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $sourcePath = longNameOf($buffer[0]) + "." + $buffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}else {string $plugs[];if ($typeFlag) {$sourceNodes = `listConnections -d false -p false -s true -t $type $n`;$plugs = `listConnections -d false -p true -s true -t $type $n`;}else {$sourceNodes = `listConnections -d false -p false -s true $n`;$plugs = `listConnections -d false -p true -s true $n`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $sourcePath = longNameOf($buffer[0]) + "." + $buffer[1];string $targetPlugs[] = `listConnections -d true -p true -s false $sourcePath`;$targetPlugs = stringArrayRemoveDuplicates($targetPlugs);for ($targetPlug in $targetPlugs) {string $targetBuffer[];if (`tokenize $targetPlug "." $targetBuffer` != 2) continue;string $targetNode = longNameOf($targetBuffer[0]);if ($targetNode != $n) continue;string $destPath = $targetNode + "." + $targetBuffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}$sourceNodes = stringArrayRemoveDuplicates($sourceNodes);for ($i = 0; $i < `size $sourceNodes`; $i++) {$sourceNodes[$i] = longNameOf($sourceNodes[$i]);}return $sourceNodes;}proc string[] getDestConnections(string $n,string $attributes[],string $type,string $sourceAttributes[],string $targetAttributes[]) {string $destNodes[];clear $sourceAttributes;clear $targetAttributes;if (!`objExists $n`) return $destNodes;$n = longNameOf($n);int $typeFlag = `size $type` > 0;if (`size $attributes`) {for ($attribute in $attributes) {if (!existsAttribute($n, $attribute)) continue;string $sourcePath = $n + "." + $attribute;string $nodes[];if ($typeFlag) {$nodes = `listConnections -d true -p false -s false -t $type $sourcePath`;}else {$nodes = `listConnections -d true -p false -s false $sourcePath`;}$destNodes = stringArrayCatenate($destNodes, $nodes);string $plugs[];if ($typeFlag) {$plugs = `listConnections -d true -p true -s false -t $type $sourcePath`;}else {$plugs = `listConnections -d true -p true -s false $sourcePath`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $destPath = longNameOf($buffer[0]) + "." + $buffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}else {string $plugs[];if ($typeFlag) {$destNodes = `listConnections -d true -p false -s false -t $type $n`;$plugs = `listConnections -d true -p true -s false -t $type $n`;}else {$destNodes = `listConnections -d true -p false -s false $n`;$plugs = `listConnections -d true -p true -s false $n`;}$plugs = stringArrayRemoveDuplicates($plugs);for ($plug in $plugs) {string $buffer[];if (`tokenize $plug "." $buffer` != 2) continue;string $destPath = longNameOf($buffer[0]) + "." + $buffer[1];string $sourcePlugs[] = `listConnections -d false -p true -s true $destPath`;$sourcePlugs = stringArrayRemoveDuplicates($sourcePlugs);for ($sourcePlug in $sourcePlugs) {string $sourceBuffer[];if (`tokenize $sourcePlug "." $sourceBuffer` != 2) continue;string $sourceNode = longNameOf($sourceBuffer[0]);if ($sourceNode != $n) continue;string $sourcePath = $sourceNode + "." + $sourceBuffer[1];$sourceAttributes[`size $sourceAttributes`] = $sourcePath;$targetAttributes[`size $targetAttributes`] = $destPath;}}}$destNodes = stringArrayRemoveDuplicates($destNodes);for ($i = 0; $i < `size $destNodes`; $i++) {$destNodes[$i] = longNameOf($destNodes[$i]);}return $destNodes;}proc connectAttributes(string $sourceAttributes[],string $targetAttributes[],int $force) {int $numAttributes = `size $sourceAttributes`;if (`size $targetAttributes` != $numAttributes) return;for ($i = 0; $i < $numAttributes; $i++) {string $sourceAttribute = $sourceAttributes[$i];string $targetAttribute = $targetAttributes[$i];if (`isConnected -iuc $sourceAttribute $targetAttribute`) continue;if ($force) {connectAttr -f $sourceAttribute $targetAttribute;}else {connectAttr $sourceAttribute $targetAttribute;}}}proc disconnectAttributes(string $sourceAttributes[],string $targetAttributes[]) {int $numAttributes = `size $sourceAttributes`;if (`size $targetAttributes` != $numAttributes) return;for ($i = 0; $i < $numAttributes; $i++) {string $sourceAttribute = $sourceAttributes[$i];string $targetAttribute = $targetAttributes[$i];if (!`isConnected -iuc $sourceAttribute $targetAttribute`) continue;disconnectAttr $sourceAttribute $targetAttribute;}}
 /*1.5.2:ファイル*/proc string escapeStringForPythonAtFile(string $input) {string $escapedText;int $size = `size $input`;for ($i = 1; $i <= $size; $i++) {string $c = `substring $input $i $i`;switch ($c) {case "\\": $escapedText += "\\\\"; break;case "'": $escapedText += "\\'"; break;case "\n": $escapedText += "\\n"; break;case "\r": $escapedText += "\\r"; break;default: $escapedText += $c; break;}}return $escapedText;}proc int isValidFilename(string $input) {return (`match "[:\?\"\*/\\<>\|\n\r\t]" $input` == "");}proc string escapeInvalidFileNameChars(string $input, string $replacement) {string $pattern = escapeStringForPythonAtFile("[:\?\"\*/\\<>\|\n\r\t]");$input = escapeStringForPythonAtFile($input);$replacement = escapeStringForPythonAtFile($replacement);python("import re");string $result = `python("re.sub(r'" + $pattern + "', '" + $replacement + "', '" + $input + "')")`;return $result;}proc string getSourceFilename(string $procName) {string $filename;string $thisIs = `whatIs $procName`;string $pattern1 = "^Mel procedure found in: *";string $pattern2 = "^Script found in: *";if (`match $pattern1 $thisIs` != "") {$filename = `substitute $pattern1 $thisIs ""`;}else if (`match $pattern2 $thisIs` != "") {$filename = `substitute $pattern2 $thisIs ""`;}return $filename;}proc string getSourceDirname(string $procName) {return dirname(getSourceFilename($procName));}proc int existsDirname(string $dirname) {return `filetest -d $dirname`;}proc int existsFilename(string $filename) {return `filetest -f $filename`;}proc string[] getDirnames(string $dirname) {string $subDirnames[];string $filenames[] = `getFileList -fld $dirname`;for ($i = 0; $i < `size $filenames`; $i++) {string $subDirname = $dirname + "/" + $filenames[$i];if (existsDirname($subDirname)) {$subDirnames[`size $subDirnames`] = $subDirname;}}$subDirnames = `sortCaseInsensitive $subDirnames`;return $subDirnames;}proc string[] getFilenames(string $dirname, string $filenamePattern) {string $filenames[] = `getFileList -fs $filenamePattern -fld $dirname`;for ($i = 0; $i < `size $filenames`; $i++) {$filenames[$i] = $dirname + "/" + $filenames[$i];}$filenames = `sortCaseInsensitive $filenames`;return $filenames;}proc string getOpenFilename(string $caption, string $fileFilter) {string $filename;string $filenames[] = `fileDialog2 -cap $caption -ds 2 -ff $fileFilter -fm 1`;if (`size $filenames`) $filename = $filenames[0];return $filename;}proc string getSaveFilename(string $caption, string $fileFilter) {string $filename;string $filenames[] = `fileDialog2 -cap $caption -ds 2 -ff $fileFilter -fm 0`;if (`size $filenames`) $filename = $filenames[0];return $filename;}proc string[] readAllLines(string $filename, string $encoding) {if (!`size $encoding`) $encoding = "utf-8";string $lines[];if (!existsFilename($filename)) return $lines;python("with open('" + $filename + "', 'r', encoding='" + $encoding + "') as f:" + " lines = tuple(s.rstrip('\\r\\n') for s in f.readlines())");$lines = `python("lines")`;return $lines;}proc string readAllText(string $filename, string $encoding) {if (!`size $encoding`) $encoding = "utf-8";string $text;if (!existsFilename($filename)) return $text;python("with open('" + $filename + "', 'r', encoding='" + $encoding + "') as f: text = f.read()");$text = `python("text")`;return $text;}proc int writeAllText(string $filename, string $encoding, string $input) {string $dirname = dirname($filename);if (!existsDirname($dirname)) return false;$input = escapeStringForPythonAtFile($input);if (!`size $encoding`) $encoding = "utf-8";python("with open('" + $filename + "', 'w', encoding='" + $encoding + "') as f:" + " num = f.write('" + $input + "')");return (existsFilename($filename));}proc int writeAllLines(string $filename, string $encoding, string $lines[]) {string $text = stringArrayToString($lines, "\n");if (`size $lines`) $text += "\n";return (writeAllText($filename, $encoding, $text));}proc int makeDirs(string $dirname) {if (existsDirname($dirname)) return true;if (existsFilename($dirname)) return false;python("import os");python("os.makedirs('" + $dirname + "')");return (existsDirname($dirname));}proc int moveDir(string $sourceDirname, string $destDirname) {if (!existsDirname($sourceDirname)) return false;if (existsDirname($destDirname) || existsFilename($destDirname)) return false;python("import os");python("os.rename('" + $sourceDirname + "', '" + $destDirname +"')");return (!existsDirname($sourceDirname) && existsDirname($destDirname));}proc int moveFile(string $sourceFilename, string $destFilename) {if (!existsFilename($sourceFilename)) return false;if (existsDirname($destFilename) || existsFilename($destFilename)) return false;python("import os");python("os.rename('" + $sourceFilename + "', '" + $destFilename +"')");return (!existsFilename($sourceFilename) && existsFilename($destFilename));}proc int deleteDir(string $dirname) {if (!existsDirname($dirname)) return false;python("import os");python("if len(os.listdir('" + $dirname + "')) == 0:" + " os.rmdir('" + $dirname + "')");return (!existsDirname($dirname));}proc int deleteFile(string $filename) {if (!existsFilename($filename)) return false;python("import os");python("os.remove('" + $filename + "')");return (!existsFilename($filename));}
 /*1.0.0:数値*/proc int isInRangeFloat(float $value, float $min, float $max) {return ($min <= $value && $value <= $max);}proc int isInRangeInt(int $value, int $min, int $max) {return ($min <= $value && $value <= $max);}
 /*1.3.1:文字列*/proc string escapeStringForLiteral(string $input) {string $escapedText;int $size = `size $input`;for ($i = 1; $i <= $size; $i++) {string $c = `substring $input $i $i`;switch ($c) {case "\"": $escapedText += "\\\""; break;case "\\": $escapedText += "\\\\"; break;case "\n": $escapedText += "\\n"; break;case "\r": $escapedText += "\\r"; break;case "\t": $escapedText += "\\t"; break;default: $escapedText += $c; break;}}return $escapedText;}proc string escapeStringForPythonAtString(string $input) {string $escapedText;int $size = `size $input`;for ($i = 1; $i <= $size; $i++) {string $c = `substring $input $i $i`;switch ($c) {case "\\": $escapedText += "\\\\"; break;case "'": $escapedText += "\\'"; break;case "\n": $escapedText += "\\n"; break;case "\r": $escapedText += "\\r"; break;default: $escapedText += $c; break;}}return $escapedText;}proc string booleanAsStringLiteral(int $value) {return (($value == 0) ? "false" : "true");}proc string floatAsStringLiteral(float $value) {string $literal = (string) $value;if (!`gmatch $literal "*e*"` && !`gmatch $literal "*.*"`) $literal += ".0";return $literal;}proc string intAsStringLiteral(int $value) {return ((string) $value);}proc string stringAsStringLiteral(string $value) {return ("\"" + escapeStringForLiteral($value) + "\"");}proc string booleanArrayAsStringLiteral(int $values[]) {string $stringValues[];for ($i = 0; $i < `size $values`; $i++) {$stringValues[$i] = booleanAsStringLiteral($values[$i]);}return ("{" + stringArrayToString($stringValues, ", ") + "}");}proc string floatArrayAsStringLiteral(float $values[]) {string $stringValues[];for ($i = 0; $i < `size $values`; $i++) {$stringValues[$i] = floatAsStringLiteral($values[$i]);}return ("{" + stringArrayToString($stringValues, ", ") + "}");}proc string intArrayAsStringLiteral(int $values[]) {return ("{" + intArrayToString($values, ", ") + "}");}proc string stringArrayAsStringLiteral(string $values[]) {string $stringValues[];for ($i = 0; $i < `size $values`; $i++) {$stringValues[$i] = stringAsStringLiteral($values[$i]);}return ("{" + stringArrayToString($stringValues, ", ") + "}");}proc string strip(string $input) {return `python("'" + escapeStringForPythonAtString($input) + "'.strip()")`;}proc string regexSearchGroup(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");string $result = `python("(lambda m: m.group() if m else None)(re.search(" + $pattern + ", " + $input + "))")`;return $result;}proc int[] regexSearchSpan(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");int $result[] = `python("(lambda m: m.span() if m else None)(re.search(" + $pattern + ", " + $input + "))")`;return $result;}proc string[] regexMatchGroups(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");string $result[] = `python("tuple([m.group() for m in re.finditer(" + $pattern + ", " + $input + ")])")`;return $result;}proc string[] regexMatchSubGroups(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");string $result[] = `python("sum([m.groups() for m in re.finditer(" + $pattern + ", " + $input + ")], ())")`;return $result;}proc int[] regexMatchSpans(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");int $result[] = `python("sum([m.span() for m in re.finditer(" + $pattern + ", " + $input + ")], ())")`;return $result;}proc string[] regexSplit(string $pattern, string $input, string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");string $result[] = `python("tuple(re.split(" + $pattern + ", " + $input + "))")`;return $result;}proc string regexReplace(string $pattern,string $replacement,string $input,string $flags) {$flags = (`size $flags`) ? "(?" + $flags + ")" : "";$pattern = "'" + $flags + escapeStringForPythonAtString($pattern) + "'";$replacement = "'" + escapeStringForPythonAtString($replacement) + "'";$input = "'" + escapeStringForPythonAtString($input) + "'";python("import re");string $result = `python("re.sub(" + $pattern + ", " + $replacement + ", " + $input + ")")`;return $result;}proc string getClipboardText() {python("from PySide2 import QtGui");python("cb = QtGui.QClipboard()");return python("cb.text()");}proc setClipboardText(string $text) {python("from PySide2 import QtGui");python("cb = QtGui.QClipboard()");python("cb.setText('" + escapeStringForPythonAtString($text) + "')");}
@@ -14,17 +14,16 @@
 // ドメイン
 // /////////////////////////////////////////////////////////////////////////////
 // -----------------------------------------------------------------------------
-// ノード操作
+// アトリビュート
 // -----------------------------------------------------------------------------
 /*-
 @param $n <string>
-@returns <int>
+@returns <boolean>
 */
-proc int isValidTransform(string $n) {
+proc int hasCurveNameAttribute(string $n) {
   return (
-    `objExists $n`
-        && `nodeType $n` == "transform"
-        && hasShapeTransformAttributes($n)
+    existsAttribute($n, "curveName")
+        && `getAttr -typ ($n + ".curveName")` == "string"
   );
 }
 
@@ -32,31 +31,102 @@ proc int isValidTransform(string $n) {
 @param $n <string>
 @returns <>
 */
-proc addTransformAttributes(string $n) {
-  if (!`objExists $n` || `nodeType $n` != "transform") return;
-  addShapeTransformAttributes($n);
-}
-
-/*-
-@param $name <string>
-@returns <int>
-*/
-proc string createTransform(string $name) {
-  if (!`size $name`) return "";
-  string $n = `createNode -n $name -ss "transform"`;
-  addTransformAttributes($n);
-  return $n;
+proc addCurveNameAttribute(string $n) {
+  if (!`objExists $n` || hasCurveNameAttribute($n)) return;
+  addAttr -dt "string" -ln "curveName" -sn "cn" $n;
 }
 
 /*-
 @param $n <string>
-@returns <int>
+@param $curveName <string>
+@returns <>
 */
-proc int isValidNurbsCurve(string $n) {
+proc setCurveNameAttribute(string $n, string $curveName) {
+  if (!hasCurveNameAttribute($n)) return;
+  setStringAttribute($n, "cn", $curveName);
+}
+
+/*-
+@param $n <string>
+@param $state <boolean>
+@returns <>
+*/
+proc setCurveNameAttributeLock(string $n, int $state) {
+  if (!hasCurveNameAttribute($n)) return;
+  setAttributeLock($n, "cn", $state);
+}
+
+/*-
+@param $n <string>
+@returns <boolean>
+*/
+proc int hasCurveTransformAttribute(string $n) {
+  return (hasShapeTransformAttributes($n) && hasCurveNameAttribute($n));
+}
+
+/*-
+@param $n <string>
+@returns <>
+*/
+proc addCurveTransformAttribute(string $n) {
+  if (!`objExists $n` || hasCurveTransformAttribute($n)) return;
+  addShapeTransformAttributes($n);
+  addCurveNameAttribute($n);
+}
+
+/*-
+@param $n <string>
+@param $state <boolean>
+@returns <>
+*/
+proc setCurveTransformAttributeLock(string $n, int $state) {
+  if (!hasCurveTransformAttribute($n)) return;
+
+  string $attributes[] = {
+    "stx", "sty", "stz",
+    "srx", "sry", "srz",
+    "ssx", "ssy", "ssz"
+  };
+  for ($attribute in $attributes) {
+    setAttributeLock($n, $attribute, $state);
+  }
+}
+
+/*-
+@param $n <string>
+@param $state <boolean>
+@returns <>
+*/
+proc setCurveTransformAttributeChannelBox(string $n, int $state) {
+  if (!hasCurveTransformAttribute($n)) return;
+
+  string $attributes[] = {
+    "stx", "sty", "stz",
+    "srx", "sry", "srz",
+    "ssx", "ssy", "ssz"
+  };
+  for ($attribute in $attributes) {
+    setAttributeChannelBox($n, $attribute, $state);
+  }
+}
+
+/*-
+@param $n <string>
+@param $editMode <boolean>
+@returns <>
+*/
+proc setCurveTransformAttributeState(string $n, int $editMode) {
+  setCurveTransformAttributeLock($n, !$editMode);
+  setCurveTransformAttributeChannelBox($n, $editMode);
+}
+
+/*-
+@param $n <string>
+@returns <boolean>
+*/
+proc int hasNurbsCurveAttribute(string $n) {
   return (
-    `objExists $n`
-        && `nodeType $n` == "nurbsCurve"
-        && `attributeQuery -n $n -ex "sourceCurve"`
+    existsAttribute($n, "sourceCurve")
         && `getAttr -typ ($n + ".sourceCurve")` == "nurbsCurve"
   );
 }
@@ -65,9 +135,56 @@ proc int isValidNurbsCurve(string $n) {
 @param $n <string>
 @returns <>
 */
-proc addCurveAttribute(string $n) {
-  if (isValidNurbsCurve($n) || `nodeType $n` != "nurbsCurve") return;
+proc addNurbsCurveAttribute(string $n) {
+  if (!`objExists $n` || hasNurbsCurveAttribute($n)) return;
   addAttr -dt "nurbsCurve" -k false -ln "sourceCurve" -sn "sc" $n;
+}
+
+// -----------------------------------------------------------------------------
+// ノード
+// -----------------------------------------------------------------------------
+/*-
+@param $n <string>
+@returns <boolean>
+*/
+proc int isValidCurveTransform(string $n) {
+  return (hasCurveTransformAttribute($n) && `nodeType $n` == "transform");
+}
+
+/*-
+@param $name <string>
+@returns <int>
+*/
+proc string createCurveTransform(string $name) {
+  if (!`size $name`) return "";
+  string $n = `createNode -n $name -ss "transform"`;
+  addCurveTransformAttribute($n);
+  return $n;
+}
+
+/*-
+@param $n <string>
+@returns <int>
+*/
+proc int isValidNurbsCurve(string $n) {
+  return (hasNurbsCurveAttribute($n) && `nodeType $n` == "nurbsCurve");
+}
+
+/*-
+@param $n <string>
+@returns <int>
+*/
+proc int isEditMode(string $n) {
+  if (!isValidCurveTransform($n)) return false;
+  string $sources[];
+  string $targets[];
+  string $nodes[] = getDestConnections(
+    $n, {}, "composeMatrix", $sources, $targets
+  );
+  int $numNodes = `size $nodes`;
+  int $numSources = `size $sources`;
+  int $numTargets = `size $targets`;
+  return ($numNodes > 0 && $numSources > 0 && $numTargets == $numSources);
 }
 
 /*-
@@ -86,66 +203,6 @@ proc string[] collectShapeNodes(string $n, string $type, int $validOnly) {
     $shapeNodes[`size $shapeNodes`] = $shapeNode;
   }
   return $shapeNodes;
-}
-
-/*-
-@param $n <string>
-@returns <int>
-*/
-proc int isEditMode(string $n) {
-  if (!isValidTransform($n)) return false;
-  string $sources[];
-  string $targets[];
-  string $nodes[] = getDestConnections(
-    $n, {}, "composeMatrix", $sources, $targets
-  );
-  int $numNodes = `size $nodes`;
-  int $numSources = `size $sources`;
-  int $numTargets = `size $targets`;
-  return ($numNodes > 0 && $numSources > 0 && $numTargets == $numSources);
-}
-
-/*-
-@param $n <string>
-@param $state <boolean>
-@returns <>
-*/
-proc setTransformAttributeLock(string $n, int $state) {
-  string $attributes[] = {
-    ".stx", ".sty", ".stz",
-    ".srx", ".sry", ".srz",
-    ".ssx", ".ssy", ".ssz"
-  };
-  for ($attribute in $attributes) {
-    setAttr -l $state ($n + $attribute);
-  }
-}
-
-/*-
-@param $n <string>
-@param $state <boolean>
-@returns <>
-*/
-proc setTransformAttributeCB(string $n, int $state) {
-  string $attributes[] = {
-    ".stx", ".sty", ".stz",
-    ".srx", ".sry", ".srz",
-    ".ssx", ".ssy", ".ssz"
-  };
-  for ($attribute in $attributes) {
-    setAttr -cb $state ($n + $attribute);
-  }
-}
-
-/*-
-@param $n <string>
-@param $isEditMode <boolean>
-@returns <>
-*/
-proc setTransformAttributeState(string $n, int $isEditMode) {
-  if (!isValidTransform($n)) return;
-  setTransformAttributeLock($n, !$isEditMode);
-  setTransformAttributeCB($n, $isEditMode);
 }
 
 /*-
@@ -314,7 +371,7 @@ proc string deserializeCurve(string $curveText) {
     string $curveNodes[] = collectShapeNodes($n, "nurbsCurve", false);
     if (`size $curveNodes` == 1) {
       string $curveNode = $curveNodes[0];
-      addCurveAttribute($curveNode);
+      addNurbsCurveAttribute($curveNode);
       if (isValidNurbsCurve($curveNode)) {
         string $setAttrCommand = "setAttr \"" + $curveNode + ".sc\"";
         $setAttrCommand += " -typ \"nurbsCurve\"";
@@ -594,9 +651,11 @@ proc string createCurve(string $curveName) {
   }
   if (!`size $curveNodes`) return $n;
 
-  $n = createTransform("controller");
-  setTransformAttributeState($n, false);
-  if (isValidTransform($n)) {
+  $n = createCurveTransform("controller");
+  setCurveNameAttribute($n, $curveName);
+  setCurveTransformAttributeState($n, false);
+  setCurveNameAttributeLock($n, true);
+  if (isValidCurveTransform($n)) {
     parent -r -s $curveNodes $n;
     renameCurveNodes($n);
   }
@@ -617,9 +676,9 @@ proc string[] buildEditableGraph(string $nodes[]) {
 
   for ($t in $nodes) {
     // print("  t:" + $t + "\n"); // debug
-    if (!isValidTransform($t)) continue;
+    if (!isValidCurveTransform($t)) continue;
 
-    setTransformAttributeState($t, true);
+    setCurveTransformAttributeState($t, true);
     if (isEditMode($t)) continue;
 
     string $curveNodes[] = collectShapeNodes($t, "nurbsCurve", true);
@@ -682,9 +741,9 @@ proc removeEditableGraph(string $nodes[]) {
 
   for ($t in $nodes) {
     // print("  t:" + $t + "\n"); // debug
-    if (!isValidTransform($t)) continue;
+    if (!isValidCurveTransform($t)) continue;
 
-    setTransformAttributeState($t, false);
+    setCurveTransformAttributeState($t, false);
     if (!isEditMode($t)) continue;
 
     string $curveNodes[] = collectShapeNodes($t, "nurbsCurve", true);
@@ -843,22 +902,28 @@ proc string[] replaceCurves(string $nodes[]) {
   string $targetNode = $nodes[1];
   // print("  sourceNode:" + $sourceNode + "\n"); // debug
   // print("  targetNode:" + $targetNode + "\n"); // debug
-  if (!(
-    isValidTransform($sourceNode)
-        && (`objExists $targetNode` && `nodeType $targetNode` == "transform")
-  )) return $newNodes;
+  // if (!(
+  if (
+    !isValidCurveTransform($sourceNode)
+        || !`objExists $targetNode`
+        || `nodeType $targetNode` != "transform"
+  ) return $newNodes;
 
   if (isEditMode($sourceNode)) removeEditableGraph({$sourceNode});
   if (isEditMode($sourceNode)) return $newNodes;
 
-  if (isValidTransform($targetNode)) {
+  if (isValidCurveTransform($targetNode)) {
     if (isEditMode($targetNode)) removeEditableGraph({$targetNode});
     if (isEditMode($targetNode)) return $newNodes;
   }
   else {
-    addTransformAttributes($targetNode);
+    addCurveTransformAttribute($targetNode);
   }
-  if (!isValidTransform($targetNode)) return $newNodes;
+  if (!isValidCurveTransform($targetNode)) return $newNodes;
+
+  setCurveNameAttributeLock($targetNode, false);
+  setCurveNameAttribute($targetNode, getStringAttribute($sourceNode, "cn", ""));
+  setCurveNameAttributeLock($targetNode, true);
 
   // 念のためヒストリを削除しておく
   delete -ch $targetNode;
@@ -883,6 +948,34 @@ proc string[] replaceCurves(string $nodes[]) {
   removeEditableGraph({$targetNode});
   select -r $targetNode;
   return $newNodes;
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// API
+// /////////////////////////////////////////////////////////////////////////////
+/*-
+@param $curveName <string>
+@returns <string> 作成したカーブのトランスフォームノード。
+*/
+global proc string nkCurveDepot.CreateCurve(string $curveName) {
+  return createCurve($curveName);
+}
+
+/*-
+@param $nodes <string[]>
+@param $state <boolean>
+@returns <>
+*/
+global proc nkCurveDepot.LockCurve(string $nodes[], int $state) {
+  lockCurve($nodes, $state);
+}
+
+/*-
+@param $nodes <string[]> 1番目要素がソースノード、2番目要素がターゲットノードの配列。
+@returns <string[]>
+*/
+global proc string[] nkCurveDepot.ReplaceCurves(string $nodes[]) {
+  return replaceCurves($nodes);
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -1606,7 +1699,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.1.7";
+  return "1.2.0";
 }
 
 /*-
@@ -1626,38 +1719,221 @@ nkCurveDepot;
 // /////////////////////////////////////////////////////////////////////////////
 /*-
 @returns <>
-@remarks ノード操作。
+@remarks アトリビュート。
 */
 proc test0() {
   print("test0 start\n");
   string $r;
 
-  // isValidTransform / addTransformAttributes / createTransform
+  // hasCurveNameAttribute / addCurveNameAttribute / setCurveNameAttribute / setCurveNameAttributeLock
   {
     string $t1 = `createNode -ss "transform"`;
-    $r = assertFalse(isValidTransform($t1)); if (`size $r`) warning $r;
-    addTransformAttributes($t1);
-    $r = assertTrue(isValidTransform($t1)); if (`size $r`) warning $r;
+    $r = assertFalse(hasCurveNameAttribute("")); if (`size $r`) warning $r;
+    $r = assertFalse(hasCurveNameAttribute($t1)); if (`size $r`) warning $r;
+    addCurveNameAttribute($t1);
+    $r = assertTrue(hasCurveNameAttribute($t1)); if (`size $r`) warning $r;
+    $r = assertStringEqual("", `getAttr ($t1 + ".cn")`); if (`size $r`) warning $r;
+    setCurveNameAttribute("", "");
+    $r = assertStringEqual("", `getAttr ($t1 + ".cn")`); if (`size $r`) warning $r;
+    setCurveNameAttribute($t1, "a");
+    $r = assertStringEqual("a", `getAttr ($t1 + ".cn")`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l ($t1 + ".cn")`); if (`size $r`) warning $r;
+    setCurveNameAttributeLock($t1, true);
+    $r = assertTrue(`getAttr -l ($t1 + ".cn")`); if (`size $r`) warning $r;
+    if (`objExists $t1`) delete $t1;
+  }
+
+  // hasCurveTransformAttribute / addCurveTransformAttribute
+  {
+    string $t1 = `createNode -ss "transform"`;
+    $r = assertFalse(hasCurveTransformAttribute("")); if (`size $r`) warning $r;
+    $r = assertFalse(hasCurveTransformAttribute($t1)); if (`size $r`) warning $r;
+    addCurveTransformAttribute($t1);
+    $r = assertTrue(hasCurveTransformAttribute($t1)); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t1 + ".st")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t1 + ".sr")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({1.0, 1.0, 1.0}, `getAttr ($t1 + ".ss")`, 0.001); if (`size $r`) warning $r;
-    string $t2 = createTransform("controller");
-    $r = assertTrue(isValidTransform($t2)); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t2 + ".st")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t2 + ".sr")`, 0.001); if (`size $r`) warning $r;
-    $r = assertFloatArrayEqual({1.0, 1.0, 1.0}, `getAttr ($t2 + ".ss")`, 0.001); if (`size $r`) warning $r;
     if (`objExists $t1`) delete $t1;
-    if (`objExists $t2`) delete $t2;
   }
 
-  // isValidNurbsCurve / addCurveAttribute
+  // setCurveTransformAttributeLock / setCurveTransformAttributeChannelBox / setCurveTransformAttributeState
+  {
+    // string $t1 = createCurveTransform("controller");
+    string $t1 = `createNode -ss "transform"`;
+    string $stx = $t1 + ".stx";
+    string $sty = $t1 + ".sty";
+    string $stz = $t1 + ".stz";
+    string $srx = $t1 + ".srx";
+    string $sry = $t1 + ".sry";
+    string $srz = $t1 + ".srz";
+    string $ssx = $t1 + ".ssx";
+    string $ssy = $t1 + ".ssy";
+    string $ssz = $t1 + ".ssz";
+
+    $r = assertFalse(hasCurveTransformAttribute($t1)); if (`size $r`) warning $r;
+    addCurveTransformAttribute($t1);
+    $r = assertTrue(hasCurveTransformAttribute($t1)); if (`size $r`) warning $r;
+
+    $r = assertFalse(`getAttr -l $stx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $sty`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $stz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $srx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $sry`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $srz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssy`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $stx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $sty`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $stz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $srx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $sry`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $srz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
+
+    setCurveTransformAttributeLock($t1, true);
+    $r = assertTrue(`getAttr -l $stx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $sty`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $stz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $srx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $sry`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $srz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $ssx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $ssy`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $ssz`); if (`size $r`) warning $r;
+    setCurveTransformAttributeLock($t1, false);
+    $r = assertFalse(`getAttr -l $stx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $sty`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $stz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $srx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $sry`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $srz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssy`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssz`); if (`size $r`) warning $r;
+
+    setCurveTransformAttributeChannelBox($t1, true);
+    $r = assertTrue(`getAttr -cb $stx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $sty`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $stz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $srx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $sry`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $srz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $ssx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $ssy`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $ssz`); if (`size $r`) warning $r;
+    setCurveTransformAttributeChannelBox($t1, false);
+    $r = assertFalse(`getAttr -cb $stx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $sty`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $stz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $srx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $sry`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $srz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
+
+    setCurveTransformAttributeState($t1, true);
+    $r = assertFalse(`getAttr -l $stx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $sty`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $stz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $srx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $sry`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $srz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssy`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -l $ssz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $stx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $sty`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $stz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $srx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $sry`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $srz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $ssx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $ssy`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -cb $ssz`); if (`size $r`) warning $r;
+
+    setCurveTransformAttributeState($t1, false);
+    $r = assertTrue(`getAttr -l $stx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $sty`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $stz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $srx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $sry`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $srz`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $ssx`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $ssy`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $ssz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $stx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $sty`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $stz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $srx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $sry`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $srz`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssx`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
+    $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
+
+    if (`objExists $t1`) delete $t1;
+  }
+
+  // hasNurbsCurveAttribute / addNurbsCurveAttribute
+  {
+    string $t1 = `createNode -ss "transform"`;
+    $r = assertFalse(hasNurbsCurveAttribute("")); if (`size $r`) warning $r;
+    $r = assertFalse(hasNurbsCurveAttribute($t1)); if (`size $r`) warning $r;
+    addNurbsCurveAttribute($t1);
+    $r = assertTrue(hasNurbsCurveAttribute($t1)); if (`size $r`) warning $r;
+    if (`objExists $t1`) delete $t1;
+  }
+
+  print("test0 end\n");
+}
+
+/*-
+@returns <>
+@remarks ノード。
+*/
+proc test1() {
+  print("test1 start\n");
+  string $r;
+
+  // isValidCurveTransform / createCurveTransform
+  {
+    string $t1 = createCurveTransform("controller");
+    $r = assertFalse(isValidCurveTransform("")); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t1)); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t1 + ".st")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t1 + ".sr")`, 0.001); if (`size $r`) warning $r;
+    $r = assertFloatArrayEqual({1.0, 1.0, 1.0}, `getAttr ($t1 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    if (`objExists $t1`) delete $t1;
+  }
+
+  // isValidNurbsCurve
   {
     string $t = `curve -d 1 -k 0 -k 1 -p 0 0 0 -p 1 0 0`;
     string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $t`;
     string $nc = $shapeNodes[0];
+    $r = assertFalse(isValidNurbsCurve("")); if (`size $r`) warning $r;
     $r = assertFalse(isValidNurbsCurve($nc)); if (`size $r`) warning $r;
-    addCurveAttribute($nc);
+    addNurbsCurveAttribute($nc);
     $r = assertTrue(isValidNurbsCurve($nc)); if (`size $r`) warning $r;
+    if (`objExists $t`) delete $t;
+  }
+
+  // isEditMode
+  {
+    string $t = createCurveTransform("controller");
+    $r = assertFalse(isEditMode($t)); if (`size $r`) warning $r;
+
+    string $m = `createNode "composeMatrix" -ss`;
+    connectAttr -f ($t + ".st") ($m + ".it");
+    connectAttr -f ($t + ".sr") ($m + ".ir");
+    connectAttr -f ($t + ".ss") ($m + ".is");
+    $r = assertTrue(isEditMode($t)); if (`size $r`) warning $r;
+
+    if (`objExists $m`) delete $m;
     if (`objExists $t`) delete $t;
   }
 
@@ -1696,9 +1972,9 @@ proc test0() {
     $r = assertStringArrayEqual({}, collectShapeNodes($l, "", true)); if (`size $r`) warning $r;
     $r = assertStringArrayEqual({$ls}, collectShapeNodes($l, "", false)); if (`size $r`) warning $r;
 
-    addCurveAttribute($tnc1);
-    addCurveAttribute($tnc2);
-    addCurveAttribute($tnc3);
+    addNurbsCurveAttribute($tnc1);
+    addNurbsCurveAttribute($tnc2);
+    addNurbsCurveAttribute($tnc3);
     $r = assertTrue(isValidNurbsCurve($tnc1)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($tnc2)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($tnc3)); if (`size $r`) warning $r;
@@ -1710,138 +1986,6 @@ proc test0() {
     if (`objExists $tz`) delete $tz;
     if (`objExists $t`) delete $t;
     if (`objExists $l`) delete $l;
-  }
-
-  // isEditMode
-  {
-    string $t = createTransform("controller");
-    $r = assertFalse(isEditMode($t)); if (`size $r`) warning $r;
-
-    string $m = `createNode "composeMatrix" -ss`;
-    connectAttr -f ($t + ".st") ($m + ".it");
-    connectAttr -f ($t + ".sr") ($m + ".ir");
-    connectAttr -f ($t + ".ss") ($m + ".is");
-    $r = assertTrue(isEditMode($t)); if (`size $r`) warning $r;
-
-    if (`objExists $m`) delete $m;
-    if (`objExists $t`) delete $t;
-  }
-
-  // setTransformAttributeLock / setTransformAttributeCB / setTransformAttributeState
-  {
-    string $t = createTransform("controller");
-    string $stx = $t + ".stx";
-    string $sty = $t + ".sty";
-    string $stz = $t + ".stz";
-    string $srx = $t + ".srx";
-    string $sry = $t + ".sry";
-    string $srz = $t + ".srz";
-    string $ssx = $t + ".ssx";
-    string $ssy = $t + ".ssy";
-    string $ssz = $t + ".ssz";
-
-    $r = assertFalse(`getAttr -l $stx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $sty`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $stz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $srx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $sry`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $srz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssy`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $stx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $sty`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $stz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $srx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $sry`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $srz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
-
-    setTransformAttributeLock($t, true);
-    $r = assertTrue(`getAttr -l $stx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $sty`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $stz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $srx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $sry`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $srz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $ssx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $ssy`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $ssz`); if (`size $r`) warning $r;
-    setTransformAttributeLock($t, false);
-    $r = assertFalse(`getAttr -l $stx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $sty`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $stz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $srx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $sry`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $srz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssy`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssz`); if (`size $r`) warning $r;
-
-    setTransformAttributeCB($t, true);
-    $r = assertTrue(`getAttr -cb $stx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $sty`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $stz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $srx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $sry`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $srz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $ssx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $ssy`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $ssz`); if (`size $r`) warning $r;
-    setTransformAttributeCB($t, false);
-    $r = assertFalse(`getAttr -cb $stx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $sty`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $stz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $srx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $sry`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $srz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
-
-    setTransformAttributeState($t, true);
-    $r = assertFalse(`getAttr -l $stx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $sty`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $stz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $srx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $sry`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $srz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssy`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -l $ssz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $stx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $sty`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $stz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $srx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $sry`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $srz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $ssx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $ssy`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -cb $ssz`); if (`size $r`) warning $r;
-
-    setTransformAttributeState($t, false);
-    $r = assertTrue(`getAttr -l $stx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $sty`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $stz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $srx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $sry`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $srz`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $ssx`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $ssy`); if (`size $r`) warning $r;
-    $r = assertTrue(`getAttr -l $ssz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $stx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $sty`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $stz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $srx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $sry`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $srz`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssx`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
-    $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
-
-    if (`objExists $t`) delete $t;
   }
 
   // renameCurveNodes
@@ -1891,15 +2035,15 @@ proc test0() {
     $r = assertFalse(`objExists $t3`); if (`size $r`) warning $r;
   }
 
-  print("test0 end\n");
+  print("test1 end\n");
 }
 
 /*-
 @returns <>
 @remarks カーブ定義。
 */
-proc test1() {
-  print("test1 start\n");
+proc test2() {
+  print("test2 start\n");
   string $r;
 
   // serializeCurve
@@ -1998,14 +2142,14 @@ proc test1() {
     if (`objExists $t2`) delete $t2;
   }
 
-  print("test1 end\n");
+  print("test2 end\n");
 }
 
 /*-
 @returns <>
 @remarks カーブリスト。
 */
-proc test2() {
+proc test3() {
   string $curveDirname = `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepotCurves";
   string $trashDirname = $curveDirname + "/trash";
   string $curveOrderFilename = $curveDirname + "/order.txt";
@@ -2017,7 +2161,7 @@ proc test2() {
     deleteFile($curveOrderFilename);
   }
 
-  print("test2 start\n");
+  print("test3 start\n");
   string $r;
 
   // getCurveDirname
@@ -2276,7 +2420,7 @@ proc test2() {
     if (existsFilename($curveOrderFilename)) deleteFile($curveOrderFilename);
   }
 
-  print("test2 end\n");
+  print("test3 end\n");
 
   if ($existsOrderFile) {
     writeAllText($curveOrderFilename, "", $lastOrderContent);
@@ -2287,7 +2431,7 @@ proc test2() {
 @returns <>
 @remarks カーブ操作。
 */
-proc test3() {
+proc test4() {
   string $curveDirname = `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepotCurves";
   string $curveOrderFilename = $curveDirname + "/order.txt";
 
@@ -2298,7 +2442,7 @@ proc test3() {
     deleteFile($curveOrderFilename);
   }
 
-  print("test3 start\n");
+  print("test4 start\n");
   string $r;
 
   // createCurve
@@ -2315,7 +2459,7 @@ proc test3() {
     $r = assertStringEqual("1,1,0,0,3/0,1/0,0,0;1,0,0\n1,1,0,0,3/0,1/0,0,0;0,1,0\n1,1,0,0,3/0,1/0,0,0;0,0,1\n", readAllText($xyzCurveFilename, "")); if (`size $r`) warning $r;
 
     string $t = createCurve("xyz");
-    $r = assertTrue(isValidTransform($t)); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t)); if (`size $r`) warning $r;
     string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $t`;
     $r = assertIntEqual(3, `size $shapeNodes`); if (`size $r`) warning $r;
     string $ncx = $shapeNodes[0];
@@ -2337,6 +2481,8 @@ proc test3() {
     string $ssx = $t + ".ssx";
     string $ssy = $t + ".ssy";
     string $ssz = $t + ".ssz";
+    string $cn = $t + ".cn";
+
     $r = assertTrue(`getAttr -l $stx`); if (`size $r`) warning $r;
     $r = assertTrue(`getAttr -l $sty`); if (`size $r`) warning $r;
     $r = assertTrue(`getAttr -l $stz`); if (`size $r`) warning $r;
@@ -2356,6 +2502,9 @@ proc test3() {
     $r = assertFalse(`getAttr -cb $ssy`); if (`size $r`) warning $r;
     $r = assertFalse(`getAttr -cb $ssz`); if (`size $r`) warning $r;
 
+    $r = assertStringEqual("xyz", `getAttr $cn`); if (`size $r`) warning $r;
+    $r = assertTrue(`getAttr -l $cn`); if (`size $r`) warning $r;
+
     if (existsFilename($curveOrderFilename)) deleteFile($curveOrderFilename);
     if (existsFilename($xyzCurveFilename)) deleteFile($xyzCurveFilename);
     if (`objExists $t`) delete $t;
@@ -2364,12 +2513,12 @@ proc test3() {
   // buildEditableGraph / removeEditableGraph / lockCurve
   {
     string $t = `curve -d 1 -os -per 0 -k 0 -k 1 -p 0 0 0 -p 1 0 0`;
-    addTransformAttributes($t);
+    addCurveTransformAttribute($t);
     string $shapeNodes[] = `listRelatives -f -s -typ "nurbsCurve" $t`;
     string $nc = $shapeNodes[0];
-    addCurveAttribute($nc);
+    addNurbsCurveAttribute($nc);
     setAttr ($nc + ".sc") -typ "nurbsCurve" 1 1 0 0 3 2 0 1 2 0 0 0 1 0 0;
-    $r = assertTrue(isValidTransform($t)); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($nc)); if (`size $r`) warning $r;
 
     string $nodes[] = buildEditableGraph({$t});
@@ -2412,54 +2561,60 @@ proc test3() {
     $r = assertStringArrayEqual({}, replaceCurves({$t1, $t2, $t3})); if (`size $r`) warning $r;
     $r = assertStringArrayEqual({}, replaceCurves({$t1, $t2})); if (`size $r`) warning $r;
 
-    addTransformAttributes($t1);
+    addCurveTransformAttribute($t1);
     $r = assertStringArrayEqual({}, replaceCurves({$t1, $nc2})); if (`size $r`) warning $r;
-    addCurveAttribute($nc1);
+    addNurbsCurveAttribute($nc1);
     setAttr ($t1 + ".sr") -typ "double3" 0.0 0.0 90.0;
     setAttr ($t1 + ".ss") -typ "double3" 2.0 1.0 1.0;
+    setAttr ($t1 + ".cn") -typ "string" "curve1";
     setAttr ($nc1 + ".sc") -typ "nurbsCurve" 1 1 0 0 3 2 0 1 2 0 0 0 1 0 0;
-    $r = assertTrue(isValidTransform($t1)); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t1)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($nc1)); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t1 + ".st")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 90.0}, `getAttr ($t1 + ".sr")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({2.0, 1.0, 1.0}, `getAttr ($t1 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertStringEqual("curve1", `getAttr ($t1 + ".cn")`); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 1.0, 0.0, 0.0}, `getAttr ($nc1 + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
 
-    $r = assertFalse(isValidTransform($t2)); if (`size $r`) warning $r;
+    $r = assertFalse(isValidCurveTransform($t2)); if (`size $r`) warning $r;
     $r = assertFalse(isValidNurbsCurve($nc2)); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 1.0, 0.0}, `getAttr ($nc2 + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
 
-    addTransformAttributes($t3);
-    addCurveAttribute($nc3);
+    addCurveTransformAttribute($t3);
+    addNurbsCurveAttribute($nc3);
     setAttr ($t3 + ".sr") -typ "double3" 0.0 90.0 0.0;
     setAttr ($t3 + ".ss") -typ "double3" 3.0 0.0 0.0;
+    setAttr ($t3 + ".cn") -typ "string" "curve3";
     setAttr ($nc3 + ".sc") -typ "nurbsCurve" 1 1 0 0 3 2 0 1 2 0 0 0 0 0 1;
-    $r = assertTrue(isValidTransform($t3)); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t3)); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($nc3)); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t3 + ".st")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 90.0, 0.0}, `getAttr ($t3 + ".sr")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({3.0, 0.0, 0.0}, `getAttr ($t3 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertStringEqual("curve3", `getAttr ($t3 + ".cn")`); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 0.0, 1.0}, `getAttr ($nc3 + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
 
     $t2ShapeNodes = replaceCurves({$t1, $t2});
-    $r = assertTrue(isValidTransform($t2)); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t2)); if (`size $r`) warning $r;
     $r = assertStringArrayEqual({$t2 + "Shape1"}, $t2ShapeNodes); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($t2ShapeNodes[0])); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t2 + ".st")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t2 + ".sr")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({1.0, 1.0, 1.0}, `getAttr ($t2 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertStringEqual("curve1", `getAttr ($t2 + ".cn")`); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 1.0, 0.0, 0.0}, `getAttr ($t2ShapeNodes[0] + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t1`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t1ShapeNodes[0]`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $nc2`); if (`size $r`) warning $r;
 
     $t3ShapeNodes = replaceCurves({$t2, $t3});
-    $r = assertTrue(isValidTransform($t3)); if (`size $r`) warning $r;
+    $r = assertTrue(isValidCurveTransform($t3)); if (`size $r`) warning $r;
     $r = assertStringArrayEqual({$t3 + "Shape1"}, $t3ShapeNodes); if (`size $r`) warning $r;
     $r = assertTrue(isValidNurbsCurve($t3ShapeNodes[0])); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t3 + ".st")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 90.0, 0.0}, `getAttr ($t3 + ".sr")`, 0.001); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({3.0, 0.0, 0.0}, `getAttr ($t3 + ".ss")`, 0.001); if (`size $r`) warning $r;
+    $r = assertStringEqual("curve1", `getAttr ($t3 + ".cn")`); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0, 0.0, 0.0, -3.0}, `getAttr ($t3ShapeNodes[0] + ".cp[*]")`, 0.001); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t2`); if (`size $r`) warning $r;
     $r = assertFalse(`objExists $t2ShapeNodes[0]`); if (`size $r`) warning $r;
@@ -2470,7 +2625,7 @@ proc test3() {
     if (`objExists $t3`) delete $t3;
   }
 
-  print("test3 end\n");
+  print("test4 end\n");
 
   if ($existsOrderFile) {
     writeAllText($curveOrderFilename, "", $lastOrderContent);
@@ -2486,9 +2641,10 @@ global proc nkCurveDepotTest(int $flags[]) {
   if ($flags[1]) test1();
   if ($flags[2]) test2();
   if ($flags[3]) test3();
+  if ($flags[4]) test4();
 }
 
 /*
 eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepot.mel\"");
-nkCurveDepotTest({1, 1, 1, 1});
+nkCurveDepotTest({1, 1, 1, 1, 1});
 */
