@@ -594,7 +594,7 @@ proc int moveNextCurve(int $fromIndex) {
 // カーブ操作
 // -----------------------------------------------------------------------------
 /*-
-@param $curveName <string>
+@param $curveName <string> カーブ名。
 @returns <string> 作成したカーブのトランスフォームノード。
 */
 proc string createCurve(string $curveName) {
@@ -844,8 +844,8 @@ proc removeEditableGraph(string $nodes[]) {
 }
 
 /*-
-@param $nodes <string[]>
-@param $state <boolean>
+@param $nodes <string[]> ノードの配列。
+@param $state <boolean> ロック状態。
 @returns <>
 */
 proc lockCurve(string $nodes[], int $state) {
@@ -860,7 +860,7 @@ proc lockCurve(string $nodes[], int $state) {
 
 /*-
 @param $nodes <string[]> 1番目要素がソースノード、2番目要素がターゲットノードの配列。
-@returns <string[]>
+@returns <string[]> 新たに置き換えられたシェイプノードの配列。
 */
 proc string[] replaceCurves(string $nodes[]) {
   // print("replaceCurves\n"); // debug
@@ -928,7 +928,7 @@ proc string[] replaceCurves(string $nodes[]) {
 // API
 // /////////////////////////////////////////////////////////////////////////////
 /*-
-@param $curveName <string>
+@param $curveName <string> カーブ名。
 @returns <string> 作成したカーブのトランスフォームノード。
 */
 global proc string nkCurveDepot.CreateCurve(string $curveName) {
@@ -936,8 +936,8 @@ global proc string nkCurveDepot.CreateCurve(string $curveName) {
 }
 
 /*-
-@param $nodes <string[]>
-@param $state <boolean>
+@param $nodes <string[]> ノードの配列。
+@param $state <boolean> ロック状態。
 @returns <>
 */
 global proc nkCurveDepot.LockCurve(string $nodes[], int $state) {
@@ -945,8 +945,8 @@ global proc nkCurveDepot.LockCurve(string $nodes[], int $state) {
 }
 
 /*-
-@param $nodes <string[]> 1番目要素がソースノード、2番目要素がターゲットノードの配列。
-@returns <string[]>
+@param $nodes <string[2]> 1番目要素がソースノード、2番目要素がターゲットノードの配列。
+@returns <string[]> 新たに置き換えられたシェイプノードの配列。
 */
 global proc string[] nkCurveDepot.ReplaceCurves(string $nodes[]) {
   return replaceCurves($nodes);
