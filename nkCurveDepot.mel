@@ -622,7 +622,7 @@ proc string createCurve(string $curveName) {
   }
   if (!`size $curveNodes`) return $n;
 
-  $n = createCurveTransform("controller");
+  $n = createCurveTransform("nurbsCurve");
   setStringAttribute($n, "cn", $curveName);
   setCurveTransformAttributeState($n, false);
   setCurveNameAttributeLock($n, true);
@@ -1499,7 +1499,7 @@ global proc nkCurveDepotEventController(
 @returns <string>
 */
 global proc string nkCurveDepotVersion() {
-  return "1.2.4";
+  return "1.2.5";
 }
 
 /*-
@@ -1540,7 +1540,6 @@ proc test0() {
 
   // setCurveTransformAttributeLock / setCurveTransformAttributeChannelBox / setCurveTransformAttributeState
   {
-    // string $t1 = createCurveTransform("controller");
     string $t1 = `createNode -ss "transform"`;
     string $stx = $t1 + ".stx";
     string $sty = $t1 + ".sty";
@@ -1694,7 +1693,7 @@ proc test1() {
 
   // isValidCurveTransform / createCurveTransform
   {
-    string $t1 = createCurveTransform("controller");
+    string $t1 = createCurveTransform("test");
     $r = assertFalse(isValidCurveTransform("")); if (`size $r`) warning $r;
     $r = assertTrue(isValidCurveTransform($t1)); if (`size $r`) warning $r;
     $r = assertFloatArrayEqual({0.0, 0.0, 0.0}, `getAttr ($t1 + ".st")`, 0.001); if (`size $r`) warning $r;
@@ -1717,7 +1716,7 @@ proc test1() {
 
   // isEditMode
   {
-    string $t = createCurveTransform("controller");
+    string $t = createCurveTransform("test");
     $r = assertFalse(isEditMode($t)); if (`size $r`) warning $r;
 
     string $m = `createNode "composeMatrix" -ss`;
