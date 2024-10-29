@@ -2,7 +2,7 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/imaoki/nkCurveDepot)](https://github.com/imaoki/nkCurveDepot/releases/latest)
 
-カスタムカーブを定義、作成するツール。
+カスタムカーブを定義、作成するMELツール。
 
 ## 特徴
 
