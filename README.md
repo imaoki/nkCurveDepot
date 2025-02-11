@@ -18,7 +18,7 @@ Maya 2022.5 / Windows 10
 
 ## インストール
 
-01. `nkCurveDepot.mel`および`nkCurveDepotCurves`ディレクトリ（任意）をスクリプトディレクトリにコピー
+01. `nkCurveDepot.mel` および `nkCurveDepotCurves` ディレクトリ（任意）をスクリプトディレクトリにコピー
 
     | バージョン | ディレクトリ                             |
     | ---------- | ---------------------------------------- |
@@ -54,9 +54,9 @@ nkCurveDepot;
 
 01. 追加したいカーブを選択する。（複数可）
 
-02. ![Add Curve](resource/item_add.png "Add Curve")ボタンでカーブ定義を追加。
+02. ![Add Curve](resource/item_add.png "Add Curve") ボタンでカーブ定義を追加。
 
-03. リストに追加されたカーブ定義を選択して![Create Curve](resource/createNode.png "Create Curve")ボタンでカーブノードを作成。
+03. リストに追加されたカーブ定義を選択して ![Create Curve](resource/createNode.png "Create Curve") ボタンでカーブノードを作成。
 
     カーブ定義をダブルクリックでも作成できます。
 
@@ -68,11 +68,11 @@ nkCurveDepot;
 
 ![shape-transform](resource/shape-transform.gif "shape-transform")
 
-01. カーブノードを選択して![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform")ボタンでアトリビュートのロックを解除。
+01. カーブノードを選択して ![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform") ボタンでアトリビュートのロックを解除。
 
-02. チャンネルボックスまたはアトリビュートエディタで`Shape Translate/Rotate/Scale`の値を編集。
+02. チャンネルボックスまたはアトリビュートエディタで `Shape Translate/Rotate/Scale` の値を編集。
 
-03. ![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform")ボタンでアトリビュートをロック。
+03. ![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform") ボタンでアトリビュートをロック。
 
 ### 注意点
 
@@ -90,9 +90,9 @@ nkCurveDepot;
 
 02. 置き換え対象のノード（任意の種類のノード、または本ツールで作成したカーブノード）を選択。
 
-03. ![Replace Curve](resource/bufferSnap.png "Replace Curve")ボタンで置き換え。
+03. ![Replace Curve](resource/bufferSnap.png "Replace Curve") ボタンで置き換え。
 
-04. 実行後にピボットのオフセットが反映されていない場合は![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform")/![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform")ボタンを使用して更新してください。
+04. 実行後にピボットのオフセットが反映されていない場合は ![Unlock Shape Transform](resource/unlockGeneric.png "Unlock Shape Transform") / ![Lock Shape Transform](resource/lockGeneric.png "Lock Shape Transform") ボタンを使用して更新してください。
 
 ### 注意点
 
@@ -100,9 +100,9 @@ nkCurveDepot;
 
 ## 補足事項
 
-* ![Delete Curve](resource/item_delete.png "Delete Curve")ボタンで削除したカーブ定義は`nkCurveDepotCurves/trash`ディレクトリに上書き移動されます。
+* ![Delete Curve](resource/item_delete.png "Delete Curve") ボタンで削除したカーブ定義は `nkCurveDepotCurves/trash` ディレクトリに上書き移動されます。
 
-  残しておきたいカーブ定義は適宜`.curvedepot`ファイルをバックアップしてください。
+  残しておきたいカーブ定義は適宜 `.curvedepot` ファイルをバックアップしてください。
 
 ## API
 
