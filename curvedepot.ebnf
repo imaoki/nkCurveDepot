@@ -1,40 +1,46 @@
 (*! © 2023 imaoki | MIT License | https://github.com/imaoki *)
-         file = curves ;
+file          = curves ;
 
-       curves = { curve , "\n" }+ ;
+curves        = { curve , "\n" } , curve , "\n" ;
 
-        curve = degree
+curve         = degree
               , "," , spans
               , "," , form
               , "," , is_rational
-              , "," , dimention
+              , "," , dimension
               , "/" , knot_values
               , "/" , cv_values ;
 
-       degree = ? 1-7 ? ;
+degree        = "1" | "2" | "3" | "4" | "5" | "6" | "7" ;
 
-        spans = integer ;
+spans         = integer ;
 
-         form = form_open | form_closed | form_periodic ;
+form          = form_open | form_closed | form_periodic ;
 
-  is_rational = boolean ;
+is_rational   = boolean ;
 
-    dimention = "2" | "3" ;
+dimension     = "2" | "3" ;
 
-  knot_values = knot_value { "," , knot_value } ;
+knot_values   = knot_value , { "," , knot_value } ;
 
-   knot_value = number ;
+knot_value    = number ;
 
-    cv_values = cv_value , { ";" , cv_value }+ ;
+cv_values     = cv_value , { ";" , cv_value } ;
 
-     cv_value = number , "," , number , "," number ;
+cv_value      = number , "," , number , "," , number ;
 
-    form_open = "0" ;
+form_open     = "0" ;
 
-  form_closed = "1" ;
+form_closed   = "1" ;
 
 form_periodic = "2" ;
 
-      boolean = "0" | "1" ;
+boolean       = "0" | "1" ;
 
-       number = [ "-" ] , ( integer | real ) ;
+number        = [ "-" ] , ( integer | real ) ;
+
+integer       = digit , { digit } ;
+
+real          = digit , { digit } , "." , digit , { digit } ;
+
+digit         = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
