@@ -1511,12 +1511,11 @@ global proc nkCurveDepot() {
   // ライブラリ初期化
   nkStringInitialize(false);
 
+  // ツール初期化
+  // nkTemplateInitialize();
+
   buildMainWindow();
 }
-
-// -----------------------------------------------------------------------------
-// ツール初期化
-// -----------------------------------------------------------------------------
 
 /*
 eval ("source \"" + `getenv "MAYA_APP_DIR"` + "/dev/nkCurveDepot/nkCurveDepot.mel\"");
@@ -2441,6 +2440,9 @@ proc test4() {
 global proc nkCurveDepotTest(int $num) {
   // ライブラリ初期化
   nkStringInitialize(false);
+
+  // ツール初期化
+  // nkTemplateInitialize();
 
   if ($num < 0 || $num == 0) test0();
   if ($num < 0 || $num == 1) test1();
