@@ -2,7 +2,7 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/imaoki/nkCurveDepot)](https://github.com/imaoki/nkCurveDepot/releases/latest)
 
-カスタムカーブを定義、作成するMELツール。
+カスタムカーブを定義、作成するツール。
 
 ## 特徴
 
@@ -14,16 +14,11 @@
 
 ## 開発環境
 
-Maya 2022.5 / Windows 10
+Maya 2022.5.1 / Windows 10
 
 ## インストール
 
 01. `nkCurveDepot.mel` および `nkCurveDepotCurves` ディレクトリ（任意）をスクリプトディレクトリにコピー
-
-    | バージョン | ディレクトリ                             |
-    | ---------- | ---------------------------------------- |
-    | 英語版     | `%MAYA_APP_DIR%\<version>\scripts`       |
-    | 日本語版   | `%MAYA_APP_DIR%\<version>\ja_JP\scripts` |
 
 02. Mayaを再起動
 
