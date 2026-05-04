@@ -1,5 +1,5 @@
 (*! © 2023 imaoki | MIT License | https://github.com/imaoki *)
-file          = curves ;
+curve_file    = curves ;
 
 curves        = { curve , "\n" } , curve , "\n" ;
 
